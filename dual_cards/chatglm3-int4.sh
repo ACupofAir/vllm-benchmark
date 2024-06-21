@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Chatglm3 benchmark
-bash /llm/enable_sdpa.sh
+bash /llm/disable_sdpa.sh
 export SYCL_CACHE_PERSISTENT=1
 export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=0
 export USE_XETLA=OFF
