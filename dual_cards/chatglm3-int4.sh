@@ -12,6 +12,18 @@ export NUM_PROMPTS=1212
 export IN_LEN=1024
 export OUT_LEN=512
 
+# CCL related configs
+export TORCH_LLM_ALLREDUCE=0
+export CCL_DG2_ALLREDUCE=1
+
+# Tensor parallel related arguments:
+export CCL_WORKER_COUNT=4
+export FI_PROVIDER=shm
+export CCL_ATL_TRANSPORT=ofi
+export CCL_ZE_IPC_EXCHANGE=sockets
+export CCL_ATL_SHM=1
+
+
 # vLLM config
 export LOW_BIT="sym_int4"
 export MAX_NUM_BATHCED_TOKENS=4000
