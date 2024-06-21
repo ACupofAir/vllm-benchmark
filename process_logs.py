@@ -6,6 +6,7 @@ def extract_info(log_content):
     # 使用正则表达式提取所需的信息
     low_bit = re.search(r'export LOW_BIT="(\w+)"', log_content).group(1)
     max_num_batched_tokens = re.search(r'export MAX_NUM_BATHCED_TOKENS=(\d+)', log_content).group(1)
+    num_prompts = re.search(r'export NUM_PROMPTS=(\d+)', log_content).group(1)
     max_num_seqs = re.search(r'export MAX_NUM_SEQS=(\d+)', log_content).group(1)
     gpu_utilization_rate = re.search(r'export GPU_UTILIZATION_RATE=([\d\.]+)', log_content).group(1)
     gpu_blocks = re.search(r'INFO.*gpu_executor\.py.*# GPU blocks: (\d+)', log_content).group(1)
@@ -23,6 +24,7 @@ def extract_info(log_content):
         'filename': log_content,
         'low_bit': low_bit,
         'max_num_batched_tokens': max_num_batched_tokens,
+        'num_prompts': num_prompts,
         'max_num_seqs': max_num_seqs,
         'gpu_utilization_rate': gpu_utilization_rate,
         'gpu_blocks': gpu_blocks,
@@ -66,6 +68,8 @@ if __name__ == "__main__":
     df['sort_key'] = df.apply(custom_sort_key, axis=1)
     # 根据排序键列排序
     df = df.sort_values(by='sort_key').drop(columns='sort_key')
+    # 重新排列列的顺序
+    df = df[['filename', 'low_bit', 'max_num_batched_tokens', 'num_prompts', 'max_num_seqs', 'gpu_utilization_rate', 'gpu_blocks', 'request_per_second', 'token_throughput']]
     df.to_csv('logs_summary.csv', index=False)
     print("Logs processed and summary saved to logs_summary.csv")
     # 打印表格
