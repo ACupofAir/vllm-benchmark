@@ -8,15 +8,15 @@ export USE_XETLA=OFF
 export MODEL="/llm/models/chatglm3-6b/"
 
 # Benchmark config for prompts
-export NUM_PROMPTS=512
+export NUM_PROMPTS=1146
 export IN_LEN=1024
 export OUT_LEN=512
 
 # vLLM config
-export LOW_BIT="sym_int4"
+export LOW_BIT="fp6"
 export MAX_NUM_BATHCED_TOKENS=4000
 export MAX_MODEL_LEN=4000
-export MAX_NUM_SEQS=256
+export MAX_NUM_SEQS=573
 export TENSOR_PARALLEL_SIZE=1
 export GPU_UTILIZATION_RATE=0.95
 
