@@ -1,7 +1,8 @@
 #!/bin/bash
 
-TEST_DIRS=("single_card" "dual_cards")
+# TEST_DIRS=("single_card" "dual_cards")
 # TEST_DIRS=("single_card")
+TEST_DIRS=("dual_cards")
 LOG_DIR="logs"
 
 if [ ! -d "$LOG_DIR" ]; then

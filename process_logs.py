@@ -42,9 +42,30 @@ def process_logs(logs_dir):
     
     return pd.DataFrame(data)
 
+def custom_sort_key(row):
+    # 自定义排序规则
+    filename = row['filename']
+    low_bit = row['low_bit']
+    
+    if filename.startswith('single_card'):
+        prefix_order = 0
+    elif filename.startswith('dual_card'):
+        prefix_order = 1
+    else:
+        prefix_order = 2  # 如果有其他类型的文件名前缀
+
+    low_bit_order = {'fp16': 0, 'fp8': 1, 'fp8_e4m3': 2, 'fp6': 3, 'sym_int4': 4}
+    low_bit_order_val = low_bit_order.get(low_bit, 5)  # 默认其他值排在最后
+
+    return (prefix_order, low_bit_order_val)
+
 if __name__ == "__main__":
     logs_dir = 'logs'
     df = process_logs(logs_dir)
+    # 添加排序键列
+    df['sort_key'] = df.apply(custom_sort_key, axis=1)
+    # 根据排序键列排序
+    df = df.sort_values(by='sort_key').drop(columns='sort_key')
     df.to_csv('logs_summary.csv', index=False)
     print("Logs processed and summary saved to logs_summary.csv")
     # 打印表格
