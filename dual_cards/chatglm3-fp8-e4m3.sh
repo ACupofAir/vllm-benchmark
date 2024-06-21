@@ -23,6 +23,7 @@ export CCL_ATL_TRANSPORT=ofi
 export CCL_ZE_IPC_EXCHANGE=sockets
 export CCL_ATL_SHM=1
 
+source /opt/intel/1ccl-wks/setvars.sh
 
 # vLLM config
 export LOW_BIT="fp8_e4m3"
