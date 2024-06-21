@@ -14,21 +14,17 @@ for TEST_DIR in "${TEST_DIRS[@]}"; do
     fi
 
     for SCRIPT in "$TEST_DIR"/*.sh; do
-        if [ -x "$SCRIPT" ]; then
-            SCRIPT_NAME=$(basename "$SCRIPT")
-            LOG_FILE="${LOG_DIR}/${TEST_DIR}_${SCRIPT_NAME}.log"
-            echo "Running $SCRIPT, logging to $LOG_FILE..."
+        SCRIPT_NAME=$(basename "$SCRIPT")
+        LOG_FILE="${LOG_DIR}/${TEST_DIR}_${SCRIPT_NAME}.log"
+        echo "Running $SCRIPT, logging to $LOG_FILE..."
 
-            echo "### Script Content: ${SCRIPT}" > "$LOG_FILE"
-            cat "$SCRIPT" >> "$LOG_FILE"
-            echo -e "\n### Script Output:\n" >> "$LOG_FILE"
+        echo "### Script Content: ${SCRIPT}" > "$LOG_FILE"
+        cat "$SCRIPT" >> "$LOG_FILE"
+        echo -e "\n### Script Output:\n" >> "$LOG_FILE"
 
-            ./"$SCRIPT" &>> "$LOG_FILE"
-            echo "$SCRIPT finished. Output logged to $LOG_FILE"
-            echo
-        else
-            echo "$SCRIPT is not executable or not a valid file."
-        fi
+        bash ./"$SCRIPT" &>> "$LOG_FILE"
+        echo "$SCRIPT finished. Output logged to $LOG_FILE"
+        echo
     done
 done
 
