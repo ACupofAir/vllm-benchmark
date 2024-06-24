@@ -29,7 +29,7 @@ for TEST_DIR in "${TEST_DIRS[@]}"; do
         cat "$SCRIPT" >> "$LOG_FILE"
         echo -e "\n### Script Output:\n" >> "$LOG_FILE"
 
-        bash "$SCRIPT" &>> "$LOG_FILE"
+        bash "$SCRIPT" 2>&1 | tee -a "$LOG_FILE"
         echo "$SCRIPT finished. Output logged to $LOG_FILE"
         echo
     done
