@@ -75,3 +75,36 @@ if __name__ == "__main__":
     # 打印表格
     print(df.to_markdown(index=False))
 
+
+    # 创建与Excel表格匹配的新DataFrame
+    output_data = []
+    for _, row in df.iterrows():
+        if row['request_per_second'] == 'failed':
+            output_token_per_sec = 'failed'
+        else:
+            output_token_per_sec = float(row['request_per_second']) * 512
+        
+        output_row = {
+            'filename': row['filename'],
+            'req per sec': row['request_per_second'],
+            'output token per sec (TPS)': output_token_per_sec,
+            '1st': '',  # 忽略
+            'next': '',  # 忽略
+            'owner': '',  # 忽略
+            'ratio': '',  # 忽略
+            'GPU blocks': row['gpu_blocks'],
+            'GPU utilizaton rate': row['gpu_utilization_rate'],
+            'max num seqs': row['max_num_seqs'],
+            'max num batched tokens': row['max_num_batched_tokens'],
+            'in-out throughput': row['token_throughput']
+        }
+        output_data.append(output_row)
+    
+    output_df = pd.DataFrame(output_data)
+
+    # 打印生成的表格
+    print(output_df.to_markdown(index=False))
+
+    # 保存到csv文件
+    output_df.to_csv('logs_summary_for_excel.csv', index=False)
+    print("Logs processed and summary saved to logs_summary_for_excel.csv")
