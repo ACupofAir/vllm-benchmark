@@ -10,6 +10,11 @@ def extract_info(log_content):
     max_num_seqs = re.search(r'export MAX_NUM_SEQS=(\d+)', log_content).group(1)
     gpu_utilization_rate = re.search(r'export GPU_UTILIZATION_RATE=([\d\.]+)', log_content).group(1)
     gpu_blocks = re.search(r'INFO.*gpu_executor\.py.*# GPU blocks: (\d+)', log_content).group(1)
+    in_len = re.search(r'export IN_LEN=(\d+)', log_content).group(1)
+    out_len = re.search(r'export OUT_LEN=(\d+)', log_content).group(1)
+
+    # 计算 expected_max_num_seqs，向下整除
+    expected_max_num_seqs = int(gpu_blocks) * 16 // (int(in_len) + int(out_len))
 
     # 检查 Throughput 信息
     throughput_match = re.search(r'Throughput: ([\d\.]+) requests/s, (\d+\.?\d*) tokens/s', log_content)
@@ -19,6 +24,13 @@ def extract_info(log_content):
     else:
         request_per_second = 'failed'
         token_throughput = 'failed'
+
+    # 提取 total_num_cumulative_preemption 的最新出现值
+    preemption_matches = re.findall(r'total_num_cumulative_preemption=(\d+)', log_content)
+    if preemption_matches:
+        total_num_cumulative_preemption = preemption_matches[-1]
+    else:
+        total_num_cumulative_preemption = '0'
     
     return {
         'filename': log_content,
@@ -29,7 +41,9 @@ def extract_info(log_content):
         'gpu_utilization_rate': gpu_utilization_rate,
         'gpu_blocks': gpu_blocks,
         'request_per_second': request_per_second,
-        'token_throughput': token_throughput
+        'token_throughput': token_throughput,
+        'expected_max_num_seqs': expected_max_num_seqs,
+        'total_num_cumulative_preemption': total_num_cumulative_preemption
     }
 
 def process_logs(logs_dir):
@@ -68,13 +82,14 @@ if __name__ == "__main__":
     df['sort_key'] = df.apply(custom_sort_key, axis=1)
     # 根据排序键列排序
     df = df.sort_values(by='sort_key').drop(columns='sort_key')
-    # 重新排列列的顺序
-    df = df[['filename', 'low_bit', 'max_num_batched_tokens', 'num_prompts', 'max_num_seqs', 'gpu_utilization_rate', 'gpu_blocks', 'request_per_second', 'token_throughput']]
-    df.to_csv('logs_summary.csv', index=False)
-    print("Logs processed and summary saved to logs_summary.csv")
-    # 打印表格
-    print(df.to_markdown(index=False))
 
+    # 调整列的顺序，将 expected_max_num_seqs 放在 max_num_seqs 右边
+    cols = df.columns.tolist()
+    max_num_seqs_index = cols.index('max_num_seqs')
+    cols.insert(max_num_seqs_index + 1, cols.pop(cols.index('expected_max_num_seqs')))
+    df = df[cols]
+    print(df.to_markdown(index=False))
+    print("###########################################")
 
     # 创建与Excel表格匹配的新DataFrame
     output_data = []
