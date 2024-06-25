@@ -2,6 +2,7 @@
 
 # TEST_DIRS=("single_card" "dual_cards")
 # TEST_DIRS=("single_card")
+TEST_DIRS=("dual_cards/qwen1.5-14b/")
 LOG_DIR="logs"
 
 if [ ! -d "$LOG_DIR" ]; then
