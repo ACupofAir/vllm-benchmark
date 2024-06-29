@@ -8,7 +8,7 @@ export USE_XETLA=OFF
 export MODEL="/llm/models/Qwen1.5-14B-Chat/"
 
 # Benchmark config for prompts
-export NUM_PROMPTS=512
+export NUM_PROMPTS=20
 export IN_LEN=1024
 export OUT_LEN=512
 

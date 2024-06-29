@@ -8,7 +8,7 @@ export USE_XETLA=OFF
 export MODEL="/llm/models/Llama-2-13b-chat-hf/"
 
 # Benchmark config for prompts
-export NUM_PROMPTS=16
+export NUM_PROMPTS=65
 export IN_LEN=1024
 export OUT_LEN=512
 
@@ -29,7 +29,7 @@ source /opt/intel/1ccl-wks/setvars.sh
 export LOW_BIT="fp8"
 export MAX_NUM_BATHCED_TOKENS=4500
 export MAX_MODEL_LEN=2048
-export MAX_NUM_SEQS=12
+export MAX_NUM_SEQS=13
 export TENSOR_PARALLEL_SIZE=2
 export GPU_UTILIZATION_RATE=0.93
 
