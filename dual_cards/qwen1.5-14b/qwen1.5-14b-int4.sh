@@ -5,7 +5,7 @@ bash /llm/disable_sdpa.sh
 export SYCL_CACHE_PERSISTENT=1
 export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=0
 export USE_XETLA=OFF
-export MODEL="/llm/models/chatglm3-6b/"
+export MODEL="/llm/models/Qwen1.5-14B-Chat/"
 
 # Benchmark config for prompts
 export NUM_PROMPTS=320
