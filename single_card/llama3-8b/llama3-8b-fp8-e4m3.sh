@@ -8,15 +8,15 @@ export USE_XETLA=OFF
 export MODEL="/llm/models/Meta-Llama-3-8B-Instruct/"
 
 # Benchmark config for prompts
-export NUM_PROMPTS=150
+export NUM_PROMPTS=145
 export IN_LEN=1024
 export OUT_LEN=512
 
 # vLLM config
 export LOW_BIT="fp8_e4m3"
-export MAX_NUM_BATHCED_TOKENS=4000
-export MAX_MODEL_LEN=4000
-export MAX_NUM_SEQS=30
+export MAX_NUM_BATHCED_TOKENS=2000
+export MAX_MODEL_LEN=2000
+export MAX_NUM_SEQS=29
 export TENSOR_PARALLEL_SIZE=1
 export GPU_UTILIZATION_RATE=0.96
 
