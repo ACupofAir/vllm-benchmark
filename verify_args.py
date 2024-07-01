@@ -59,7 +59,7 @@ def process_scripts(scripts_dirs):
     return pd.DataFrame(data)
 
 if __name__ == "__main__":
-    scripts_dirs = ["single_card/chatglm4-9b/", "dual_cards/chatglm4-9b"]  # 替换为你的脚本所在目录
+    scripts_dirs = ["dual_cards/llama3-8b/"]  # 替换为你的脚本所在目录
     df = process_scripts(scripts_dirs)
 
     # 调整列的顺序，将 filename 放在最前
