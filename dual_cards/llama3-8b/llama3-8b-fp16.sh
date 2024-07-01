@@ -27,8 +27,8 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 # vLLM config
 export LOW_BIT="fp16"
-export MAX_NUM_BATHCED_TOKENS=4050
-export MAX_MODEL_LEN=4000
+export MAX_NUM_BATHCED_TOKENS=3050
+export MAX_MODEL_LEN=3050
 export MAX_NUM_SEQS=74
 export TENSOR_PARALLEL_SIZE=2
 export GPU_UTILIZATION_RATE=0.96
