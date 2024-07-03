@@ -3,7 +3,7 @@
 # TEST_DIRS=("single_card" "dual_cards")
 # TEST_DIRS=("single_card")
 # TEST_DIRS=("single_card/qwen1.5-14b" "single_card/chatglm4-9b/" "dual_cards/chatglm4-9b/" "single_card/chatglm3-6b/" "single_card/llama2-13b/" "dual_cards/qwen1.5-14b/" "dual_cards/llama2-13b/" "dual_cards/chatglm3-6b/")
-TEST_DIRS=("dual_cards/llama3-8b/" "single_card/llama3-8b")
+TEST_DIRS=("dual_cards/llama2-7b/" "single_card/llama2-7b")
 LOG_DIR="logs"
 
 if [ ! -d "$LOG_DIR" ]; then
