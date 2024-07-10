@@ -9,7 +9,7 @@ export MODEL="/llm/models/Qwen1.5-72B-Chat/"
 # Benchmark config for prompts
 export NUM_PROMPTS=5
 export IN_LEN=1024
-export OUT_LEN=512
+export OUT_LEN=128
 
 # CCL related configs
 export TORCH_LLM_ALLREDUCE=0
@@ -26,8 +26,8 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 # vLLM config
 export LOW_BIT="fp6"
-export MAX_NUM_BATHCED_TOKENS=1600
-export MAX_MODEL_LEN=1600
+export MAX_NUM_BATHCED_TOKENS=1280
+export MAX_MODEL_LEN=1280
 export MAX_NUM_SEQS=1
 export TENSOR_PARALLEL_SIZE=4
 export GPU_UTILIZATION_RATE=0.98
