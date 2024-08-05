@@ -6,8 +6,8 @@ sudo docker run -itd \
         --net=host \
         --device=/dev/dri \
         --name=$CONTAINER_NAME \
-        -v /home/intel/LLM:/llm/models/ \
-        -v /home/intel/junwang/vllm-benchmark:/llm/vllm-benchmark/ \
+        -v /LLM_MODELS:/llm/models/ \
+        -v /home/user/junwang/vllm-benchmark:/llm/vllm-benchmark/ \
         -e http_proxy=http://proxy.iil.intel.com:911 \
         -e https_proxy=http://proxy.iil.intel.com:911 \
         --shm-size="16g" \
