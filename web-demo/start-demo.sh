@@ -21,12 +21,12 @@ export CCL_ATL_SHM=1
 source /opt/intel/1ccl-wks/setvars.sh
 
 python -m ipex_llm.serving.fastchat.vllm_worker \
---model-path /llm/models/whisper-tiny \
+--model-path /llm/models/paraformer-zh \
 --device xpu \
 --enforce-eager \
 --dtype float16 \
 --load-in-low-bit fp8 \
---tensor-parallel-size 4 \
+--tensor-parallel-size 1 \
 --gpu-memory-utilization 0.75 \
 --max-model-len 2048 \
 --max-num-batched-tokens 4096 &
