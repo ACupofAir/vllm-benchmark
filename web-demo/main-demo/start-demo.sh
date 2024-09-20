@@ -2,6 +2,7 @@ ps -ef | grep "fastchat" | awk '{print $2}' | xargs kill -9
 
 
 pip install -U gradio==4.43.0
+pip install trl
 
 # start controller
 python -m fastchat.serve.controller &
