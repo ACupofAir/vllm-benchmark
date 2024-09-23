@@ -276,7 +276,7 @@ def _prepare_text_with_image(state, text, image):
 def audio_to_text(state, model_selector, textbox, imagebox, audiobox):
     if textbox:
         return [state, model_selector, textbox, imagebox, audiobox]
-    WHISPER_MODEL_PATH = "/llm/models/whisper-tiny"
+    WHISPER_MODEL_PATH = "/llm/models/whisper-medium"
     whisper_model = AutoModelForSpeechSeq2Seq.from_pretrained(WHISPER_MODEL_PATH,
                                                     load_in_4bit=True,
                                                     optimize_model=False,
