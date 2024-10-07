@@ -1,6 +1,11 @@
 #!/bin/bash
+<<<<<<< HEAD
 model="/llm/models/Qwen1.5-14B-Chat/"
 served_model_name="Qwen1.5-14B-Chat"
+=======
+model="/llm/models/Llama-2-13b-chat-hf/"
+served_model_name="llama2-13b"
+>>>>>>> ede4005c4565822c5910ff6ad8649bfc56a298f0
 
 #source /opt/intel/1ccl-wks/setvars.sh
 export no_proxy=localhost,127.0.0.1
@@ -38,5 +43,5 @@ python -m vllm.entrypoints.openai.api_server \
   --max-model-len 2048 \
   --max-num-batched-tokens 4096 \
   --max-num-seqs 256 \
-  -pp 2
+  -tp 4
   #-tp 2 #--enable-prefix-caching --enable-chunked-prefill #--tokenizer-pool-size 8 --swap-space 8
