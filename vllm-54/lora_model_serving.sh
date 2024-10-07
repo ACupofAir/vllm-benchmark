@@ -1,4 +1,5 @@
 export SQL_LOARA=/llm/models/llama-2-7b-sql-lora-test
+export SQL_LOARA2=/llm/models/llama-2-7b-chat-lora-adaptor
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
 	--served-model-name Llama-2-7b-hf \
 	--port 8000 \
@@ -14,4 +15,4 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
 	--max-num-seqs 12 \
 	--tensor-parallel-size 1 \
 	--enable-lora \
-	--lora-modules sql-lora=$SQL_LOARA
+	--lora-modules sql-lora=$SQL_LOARA sql-lora2=$SQL_LOARA2
