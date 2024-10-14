@@ -8,7 +8,7 @@ sudo docker run -itd \
 	--device=/dev/dri \
 	--name=$CONTAINER_NAME \
 	-v /home/intel/LLM:/llm/models/ \
-    -v /home/intel/junwang:/workspace \
+	-v /home/intel/junwang:/workspace \
 	-e no_proxy=localhost,127.0.0.1 \
 	--shm-size="16g" \
 	$DOCKER_IMAGE
