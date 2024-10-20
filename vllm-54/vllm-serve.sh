@@ -1,6 +1,11 @@
 #!/bin/bash
-model="/llm/models/Qwen1.5-32B-Chat/"
-served_model_name="Qwen1.5-32B-Chat"
+<<<<<<< HEAD
+model="/llm/models/Qwen1.5-14B-Chat/"
+served_model_name="Qwen1.5-14B-Chat"
+=======
+model="/llm/models/Llama-2-13b-chat-hf/"
+served_model_name="llama2-13b"
+>>>>>>> ede4005c4565822c5910ff6ad8649bfc56a298f0
 
 #source /opt/intel/1ccl-wks/setvars.sh
 export no_proxy=localhost,127.0.0.1
@@ -26,7 +31,7 @@ export LD_LIBRARY_PATH=/opt/intel/oneapi/tbb/2021.12/env/../lib/intel64/gcc4.8:/
 source /opt/intel/oneapi/setvars.sh
 source /opt/intel/1ccl-wks/setvars.sh
 
-python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
+python -m vllm.entrypoints.openai.api_server \
   --served-model-name $served_model_name \
   --port 8000 \
   --model $model \
@@ -35,9 +40,8 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --device xpu \
   --dtype float16 \
   --enforce-eager \
-  --load-in-low-bit fp8 \
   --max-model-len 2048 \
   --max-num-batched-tokens 4096 \
   --max-num-seqs 256 \
-  -pp 4
+  -tp 4
   #-tp 2 #--enable-prefix-caching --enable-chunked-prefill #--tokenizer-pool-size 8 --swap-space 8
