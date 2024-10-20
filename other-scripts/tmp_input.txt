@@ -1,0 +1,265 @@
+Output length: 512
+Running benchmark with batch size 1
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 1
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:27<00:27, 27.34s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:29<00:00, 12.71s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:29<00:00, 14.90s/req]
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:31<00:31, 31.65s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [01:03<00:00, 31.64s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [01:03<00:00, 31.65s/req]
+Benchmarking:   0%|                                                          | 0/4 [00:00<?, ?req/s]
+Benchmarking:  25%|████████████▌                                     | 1/4 [00:31<01:34, 31.60s/req]
+Benchmarking:  50%|█████████████████████████                         | 2/4 [01:03<01:03, 31.60s/req]
+Benchmarking:  75%|█████████████████████████████████████▌            | 3/4 [01:34<00:31, 31.63s/req]
+Benchmarking: 100%|██████████████████████████████████████████████████| 4/4 [02:06<00:00, 31.62s/req]
+Benchmarking: 100%|██████████████████████████████████████████████████| 4/4 [02:06<00:00, 31.62s/req]
+Total time for 4 requests with 1 concurrent requests: 126.47350115102017 seconds.
+Average responce time: 31.618342171263066
+Token throughput: 16.1931154064796
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 612.7748937433353 milliseconds.
+P90 first token latency: 613.407070923131 milliseconds.
+P95 first token latency: 613.4372774686199 milliseconds.
+Average next token latency: 60.67521886032089 milliseconds.
+P90 next token latency: 60.73026275594363 milliseconds.
+P95 next token latency: 60.74391092213131 milliseconds.
+Running benchmark with batch size 2
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 2
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.45s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up:   0%|                                                               | 0/4 [00:00<?, ?req/s]
+Warm Up:  25%|█████████████▊                                         | 1/4 [00:37<01:51, 37.27s/req]
+Warm Up:  75%|█████████████████████████████████████████▎             | 3/4 [01:10<00:21, 21.79s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 4/4 [01:10<00:00, 17.50s/req]
+Benchmarking:   0%|                                                          | 0/8 [00:00<?, ?req/s]
+Benchmarking:  12%|██████▎                                           | 1/8 [00:32<03:47, 32.52s/req]
+Benchmarking:  38%|██████████████████▊                               | 3/8 [01:05<01:42, 20.52s/req]
+Benchmarking:  62%|███████████████████████████████▎                  | 5/8 [01:37<00:55, 18.36s/req]
+Benchmarking:  88%|███████████████████████████████████████████▊      | 7/8 [02:10<00:17, 17.50s/req]
+Total time for 8 requests with 2 concurrent requests: 130.43152660201304 seconds.
+Average responce time: 32.6078159812605
+Benchmarking: 100%|██████████████████████████████████████████████████| 8/8 [02:10<00:00, 16.30s/req]
+Token throughput: 31.403450582144636
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 967.7003930119099 milliseconds.
+P90 first token latency: 1220.8141462877393 milliseconds.
+P95 first token latency: 1221.2209411431104 milliseconds.
+Average next token latency: 61.91787907668829 milliseconds.
+P90 next token latency: 62.6864475155062 milliseconds.
+P95 next token latency: 62.68704466559974 milliseconds.
+Running benchmark with batch size 4
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 4
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up:   0%|                                                               | 0/8 [00:00<?, ?req/s]
+Warm Up:  12%|██████▉                                                | 1/8 [00:34<04:04, 34.88s/req]
+Warm Up:  62%|██████████████████████████████████▍                    | 5/8 [01:09<00:37, 12.60s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 8/8 [01:09<00:00,  8.71s/req]
+Benchmarking:   0%|                                                         | 0/16 [00:00<?, ?req/s]
+Benchmarking:   6%|███                                              | 1/16 [00:34<08:41, 34.76s/req]
+Benchmarking:  31%|███████████████▎                                 | 5/16 [01:09<02:18, 12.58s/req]
+Benchmarking:  56%|███████████████████████████▌                     | 9/16 [01:44<01:13, 10.46s/req]
+Benchmarking:  81%|███████████████████████████████████████         | 13/16 [02:19<00:29,  9.67s/req]
+Benchmarking: 100%|████████████████████████████████████████████████| 16/16 [02:19<00:00,  8.69s/req]
+Total time for 16 requests with 4 concurrent requests: 139.06555920501705 seconds.
+Average responce time: 34.766483280192915
+Token throughput: 58.90746815264996
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 1617.3819826872204 milliseconds.
+P90 first token latency: 2331.395107496064 milliseconds.
+P95 first token latency: 2331.763047273853 milliseconds.
+Average next token latency: 64.86967140761622 milliseconds.
+P90 next token latency: 66.87293171770779 milliseconds.
+P95 next token latency: 66.94080768682076 milliseconds.
+Running benchmark with batch size 6
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 6
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.47s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.47s/req]
+Warm Up:   0%|                                                              | 0/12 [00:00<?, ?req/s]
+Warm Up:   8%|████▌                                                 | 1/12 [00:36<06:42, 36.57s/req]
+Warm Up:  58%|███████████████████████████████▌                      | 7/12 [01:13<00:46,  9.28s/req]
+Warm Up: 100%|█████████████████████████████████████████████████████| 12/12 [01:13<00:00,  6.10s/req]
+Benchmarking:   0%|                                                         | 0/24 [00:00<?, ?req/s]
+Benchmarking:   4%|██                                               | 1/24 [00:36<14:00, 36.53s/req]
+Benchmarking:  29%|██████████████▎                                  | 7/24 [01:13<02:37,  9.27s/req]
+Benchmarking:  54%|██████████████████████████                      | 13/24 [01:49<01:22,  7.49s/req]
+Benchmarking:  79%|██████████████████████████████████████          | 19/24 [02:26<00:34,  6.86s/req]
+Total time for 24 requests with 6 concurrent requests: 146.14141395897605 seconds.
+Benchmarking: 100%|████████████████████████████████████████████████| 24/24 [02:26<00:00,  6.09s/req]
+Average responce time: 36.535588294330715
+Token throughput: 84.08294176932908
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 2196.022973749981 milliseconds.
+P90 first token latency: 3440.2005423093215 milliseconds.
+P95 first token latency: 3442.0087120117387 milliseconds.
+Average next token latency: 67.1983557670709 milliseconds.
+P90 next token latency: 70.27114079275634 milliseconds.
+P95 next token latency: 70.3186748599161 milliseconds.
+Running benchmark with batch size 8
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 8
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up:   0%|                                                              | 0/16 [00:00<?, ?req/s]
+Warm Up:   6%|███▍                                                  | 1/16 [00:38<09:42, 38.82s/req]
+Warm Up:  56%|██████████████████████████████▍                       | 9/16 [01:17<00:53,  7.59s/req]
+Warm Up: 100%|█████████████████████████████████████████████████████| 16/16 [01:17<00:00,  4.85s/req]
+Benchmarking:   0%|                                                         | 0/32 [00:00<?, ?req/s]
+Benchmarking:   3%|█▌                                               | 1/32 [00:38<20:01, 38.77s/req]
+Benchmarking:  28%|█████████████▊                                   | 9/32 [01:17<02:54,  7.58s/req]
+Benchmarking:  53%|█████████████████████████▌                      | 17/32 [01:56<01:30,  6.03s/req]
+Benchmarking:  78%|█████████████████████████████████████▌          | 25/32 [02:35<00:38,  5.50s/req]
+Total time for 32 requests with 8 concurrent requests: 155.186681630963 seconds.
+Benchmarking: 100%|████████████████████████████████████████████████| 32/32 [02:35<00:00,  4.85s/req]
+Average responce time: 38.797011163651405
+Token throughput: 105.57607023882035
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 2771.4118167496054 milliseconds.
+P90 first token latency: 4489.110669604271 milliseconds.
+P95 first token latency: 4551.793705797172 milliseconds.
+Average next token latency: 70.49830259092428 milliseconds.
+P90 next token latency: 74.47361174462975 milliseconds.
+P95 next token latency: 74.71535743304926 milliseconds.
+Running benchmark with batch size 10
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 10
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.47s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up:   0%|                                                              | 0/20 [00:00<?, ?req/s]
+Warm Up:   5%|██▋                                                   | 1/20 [00:42<13:21, 42.17s/req]
+Warm Up:  55%|█████████████████████████████▏                       | 11/20 [01:24<01:00,  6.70s/req]
+Warm Up: 100%|█████████████████████████████████████████████████████| 20/20 [01:24<00:00,  4.22s/req]
+Benchmarking:   0%|                                                         | 0/40 [00:00<?, ?req/s]
+Benchmarking:   2%|█▏                                               | 1/40 [00:42<27:22, 42.11s/req]
+Benchmarking:  28%|█████████████▏                                  | 11/40 [01:24<03:14,  6.70s/req]
+Benchmarking:  52%|█████████████████████████▏                      | 21/40 [02:06<01:40,  5.29s/req]
+Benchmarking:  78%|█████████████████████████████████████▏          | 31/40 [02:48<00:43,  4.81s/req]
+Total time for 40 requests with 10 concurrent requests: 168.87452376598958 seconds.
+Benchmarking: 100%|████████████████████████████████████████████████| 40/40 [02:48<00:00,  4.22s/req]
+Average responce time: 42.21915077268204
+Token throughput: 121.27347300993284
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 3339.075876752031 milliseconds.
+P90 first token latency: 5120.695951004746 milliseconds.
+P95 first token latency: 5659.604647997185 milliseconds.
+Average next token latency: 76.08210639192383 milliseconds.
+P90 next token latency: 79.52193238945932 milliseconds.
+P95 next token latency: 81.47911892402642 milliseconds.
+Running benchmark with batch size 16
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 16
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.47s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.47s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.47s/req]
+Warm Up:   0%|                                                              | 0/32 [00:00<?, ?req/s]
+Warm Up:   3%|█▋                                                    | 1/32 [00:52<26:57, 52.17s/req]
+Warm Up:  53%|████████████████████████████▏                        | 17/32 [01:44<01:19,  5.30s/req]
+Warm Up: 100%|█████████████████████████████████████████████████████| 32/32 [01:44<00:00,  3.26s/req]
+Benchmarking:   0%|                                                         | 0/64 [00:00<?, ?req/s]
+Benchmarking:   2%|▊                                                | 1/64 [00:51<54:34, 51.98s/req]
+Benchmarking:  27%|████████████▊                                   | 17/64 [01:43<04:08,  5.29s/req]
+Benchmarking:  52%|████████████████████████▊                       | 33/64 [02:35<02:07,  4.11s/req]
+Benchmarking:  77%|████████████████████████████████████▊           | 49/64 [03:27<00:55,  3.72s/req]
+Total time for 64 requests with 16 concurrent requests: 207.78710299899103 seconds.
+Benchmarking: 100%|████████████████████████████████████████████████| 64/64 [03:27<00:00,  3.25s/req]
+Average responce time: 51.94758747895867
+Token throughput: 157.6998741840061
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+Average first token latency: 5021.52915901388 milliseconds.
+P90 first token latency: 8389.59544103709 milliseconds.
+P95 first token latency: 8895.647280814592 milliseconds.
+  ret = ret.dtype.type(ret / rcount)
+Average next token latency: 91.829459142993 milliseconds.
+P90 next token latency: 98.36456247928378 milliseconds.
+P95 next token latency: 99.36381076843199 milliseconds.
+Running benchmark with batch size 20
+running bench.py
+model_name: Qwen1.5-32B-Chat
+max_seq: 20
+input_length: 1024
+output_length: 512
+Warm Up:   0%|                                                               | 0/2 [00:00<?, ?req/s]
+Warm Up:  50%|███████████████████████████▌                           | 1/2 [00:02<00:02,  2.45s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up: 100%|███████████████████████████████████████████████████████| 2/2 [00:04<00:00,  2.46s/req]
+Warm Up:   0%|                                                              | 0/40 [00:00<?, ?req/s]
+Warm Up:   2%|█▎                                                    | 1/40 [00:59<38:40, 59.51s/req]
+Warm Up:  52%|███████████████████████████▊                         | 21/40 [01:59<01:32,  4.89s/req]
+Warm Up: 100%|█████████████████████████████████████████████████████| 40/40 [01:59<00:00,  2.98s/req]
+Benchmarking:   0%|                                                         | 0/80 [00:00<?, ?req/s]
+Benchmarking:   1%|▌                                              | 1/80 [00:59<1:18:39, 59.74s/req]
+Benchmarking:  26%|████████████▌                                   | 21/80 [01:59<04:49,  4.90s/req]
+Benchmarking:  51%|████████████████████████▌                       | 41/80 [02:58<02:27,  3.79s/req]
+Benchmarking:  76%|████████████████████████████████████▌           | 61/80 [03:58<01:05,  3.42s/req]
+Benchmarking: 100%|████████████████████████████████████████████████| 80/80 [03:58<00:00,  2.98s/req]
+Total time for 80 requests with 20 concurrent requests: 238.5790537740104 seconds.
+Average responce time: 59.645714675424095
+Token throughput: 171.68313543065102
+/usr/local/lib/python3.11/dist-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Average first token latency: 6147.237010499521 milliseconds.
+P90 first token latency: 10614.994429110084 milliseconds.
+P95 first token latency: 10649.535575998014 milliseconds.
+Average next token latency: 104.69025605887046 milliseconds.
+P90 next token latency: 113.28248668708565 milliseconds.
+P95 next token latency: 113.66377832600274 milliseconds.
