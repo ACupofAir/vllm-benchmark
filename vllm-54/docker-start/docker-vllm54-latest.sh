@@ -1,6 +1,6 @@
 #!/bin/bash
 export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:latest
-export CONTAINER_NAME=junwang-serving-xpu-container-lastest
+export CONTAINER_NAME=junwang-serving-xpu-lastest
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \

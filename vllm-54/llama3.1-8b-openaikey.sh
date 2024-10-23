@@ -27,4 +27,5 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --max-model-len 2048 \
   --max-num-batched-tokens 4000 \
   --max-num-seqs 12 \
+  --api-key intel123 \
   --tensor-parallel-size 2
