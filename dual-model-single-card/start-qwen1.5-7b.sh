@@ -1,6 +1,6 @@
 #!/bin/bash
-model="/llm/models/Meta-Llama-3.1-8B-Instruct"
-served_model_name="llama-3.1-8b"
+model="/llm/models/Qwen1.5-7B-Chat"
+served_model_name="Qwen1.5-7B-Chat"
 
 export CCL_WORKER_COUNT=2
 export FI_PROVIDER=shm
@@ -16,16 +16,16 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --served-model-name $served_model_name \
-  --port 8001 \
+  --port 8000 \
   --model $model \
   --trust-remote-code \
-  --gpu-memory-utilization 0.9 \
+  --block-size 8 \
+  --gpu-memory-utilization 0.75 \
   --device xpu \
   --dtype float16 \
   --enforce-eager \
-  --load-in-low-bit fp8 \
+  --load-in-low-bit sym_int4 \
   --max-model-len 2048 \
   --max-num-batched-tokens 4000 \
   --max-num-seqs 12 \
-  --api-key intel123 \
-  --tensor-parallel-size 2
+  --tensor-parallel-size 1
