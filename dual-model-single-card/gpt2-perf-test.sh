@@ -16,7 +16,7 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --served-model-name $served_model_name \
-  --port 8001 \
+  --port 8000 \
   --model $model \
   --trust-remote-code \
   --block-size 8 \
