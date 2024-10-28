@@ -1,8 +1,8 @@
 #!/bin/bash
-model="/llm/models/gpt2-medium"
-served_model_name="gpt2-medium"
+model="/llm/models/Qwen2.5-0.5B-Instruct"
+served_model_name="Qwen2.5-0.5B-Instruct"
 
-export ZE_AFFINITY_MASK=1
+export ZE_AFFINITY_MASK=0
 
 export CCL_WORKER_COUNT=2
 export FI_PROVIDER=shm
@@ -18,7 +18,7 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --served-model-name $served_model_name \
-  --port 8001 \
+  --port 8000 \
   --model $model \
   --trust-remote-code \
   --block-size 8 \
