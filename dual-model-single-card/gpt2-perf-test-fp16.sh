@@ -1,8 +1,10 @@
 #!/bin/bash
+#model="/llm/models/gpt2"
+#served_model_name="gpt2"
 model="/llm/models/gpt2-medium"
 served_model_name="gpt2-medium"
 
-export ZE_AFFINITY_MASK=1
+export ZE_AFFINITY_MASK=0
 
 export CCL_WORKER_COUNT=2
 export FI_PROVIDER=shm

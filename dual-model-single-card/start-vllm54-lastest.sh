@@ -1,6 +1,6 @@
 #!/bin/bash
 export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:latest
-export CONTAINER_NAME=junwang-serving-xpu-lastest
+export CONTAINER_NAME=junwang-llm-lastest
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \
@@ -9,7 +9,7 @@ sudo docker run -itd \
 	--device=/dev/dri \
 	--name=$CONTAINER_NAME \
 	-v /mnt/disk1/models:/llm/models/ \
-	-v /home/arda/junwang:/workspace \
+	-v /home/arda/junwang:/llm/workspace \
 	-e no_proxy=localhost,127.0.0.1 \
 	-e http_proxy=http://proxy.iil.intel.com:911 \
 	-e https_proxy=http://proxy.iil.intel.com:911 \
