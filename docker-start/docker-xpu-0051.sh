@@ -1,6 +1,6 @@
 #!/bin/bash
-export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:latest
-export CONTAINER_NAME=junwang-llm-lastest
+export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:0.0.5.1
+export CONTAINER_NAME=junwang-llm-0051
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \
@@ -15,4 +15,3 @@ sudo docker run -itd \
 	-e https_proxy=http://proxy.iil.intel.com:911 \
 	--shm-size="16g" \
 	$DOCKER_IMAGE
-

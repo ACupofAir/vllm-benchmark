@@ -63,18 +63,25 @@ llm = LLM(model='/llm/models/Llama-2-7b-chat-hf',
 
 sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
 
-# Querying the age of John Doe
+# Warmup
+warmup_output = llm.generate("Whats AI?", sampling_params=sampling_params)
+print(f"warmup output: {warmup_output[0].outputs[0].text}")
+
+get_generation_time(
+        llm,
+        sampling_params,
+        LONG_PROMPT + "Question: what is the age of Zack Blue? Your answer: The age of Zack Blue is ",
+        )
+
 get_generation_time(
         llm,
         sampling_params,
         LONG_PROMPT + "Question: what is the age of John Doe? Your answer: The age of John Doe is ",
         )
 
-# Querying the age of Zack Blue
-# This query will be faster since vllm avoids computing the KV cache of LONG_PROMPT again.
 get_generation_time(
         llm,
         sampling_params,
-        LONG_PROMPT + "Question: what is the age of Zack Blue? Your answer: The age of Zack Blue is ",
+        LONG_PROMPT + "Question: what is the occupation of John Deo? Your answer: The occupation of John Deo is ",
         )
 

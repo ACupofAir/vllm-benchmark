@@ -5,7 +5,8 @@ import sys
 from ipex_llm.transformers import AutoModelForCausalLM
 from transformers import AutoTokenizer
 
-path = "/llm/models/gpt2-medium"
+#path = "/llm/models/gpt2-medium"
+path = "/llm/models/gpt2"
 device = "xpu"
 bsz = int(sys.argv[1])
 
@@ -43,7 +44,7 @@ with torch.inference_mode():
         output_tokens = model.generate(**inputs, do_sample=False, max_new_tokens=1)
         torch.xpu.synchronize()
         et = time.time()
-        print(et - st)
+        print((et - st)*1000)
 
         # output_str = tokenizer.decode(output_tokens[0])
         # print(output_str)
