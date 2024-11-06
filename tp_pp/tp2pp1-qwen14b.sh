@@ -17,7 +17,7 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --served-model-name $served_model_name \
-  --port 8000 \
+  --port 8001 \
   --model $model \
   --trust-remote-code \
   --gpu-memory-utilization 0.9 \

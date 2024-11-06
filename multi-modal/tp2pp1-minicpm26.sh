@@ -36,7 +36,7 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 # Run the command, including numactl if set
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
-	--port 8000 \
+	--port 8001 \
 	--model $model \
 	--served-model-name $served_model_name \
 	--trust-remote-code \

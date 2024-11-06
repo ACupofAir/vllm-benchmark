@@ -3,7 +3,7 @@ export SQL_LOARA=/llm/models/llama-2-7b-sql-lora-test
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --model /llm/models/Llama-2-7b-chat-hf \
   --served-model-name Llama-2-7b-chat-hf \
-  --port 8000 \
+  --port 8001 \
   --trust-remote-code \
   --gpu-memory-utilization 0.75 \
   --device xpu \

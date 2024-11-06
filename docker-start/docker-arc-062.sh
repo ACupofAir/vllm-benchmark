@@ -1,5 +1,6 @@
 #!/bin/bash
-export DOCKER_IMAGE=intelanalytics/vllm-ipex-experimental:txytest_1010
+export DOCKER_IMAGE=10.239.45.10/arda/intelanalytics/ipex-llm-serving-xpu:test-image-062
+#intelanalytics/vllm-ipex-experimental:txytest_1010
 export CONTAINER_NAME=junwang-llm-062
 
 docker rm -f $CONTAINER_NAME
