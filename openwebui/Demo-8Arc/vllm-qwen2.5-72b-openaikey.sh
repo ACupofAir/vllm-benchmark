@@ -3,7 +3,7 @@ model="/llm/models/Qwen2.5-72B-Instruct"
 served_model_name="Qwen2.5-72B-Instruct"
 
 # export SYCL_CACHE_PERSISTENT=1
-export CCL_WORKER_COUNT=4
+export CCL_WORKER_COUNT=8
 export FI_PROVIDER=shm
 export CCL_ATL_TRANSPORT=ofi
 export CCL_ZE_IPC_EXCHANGE=sockets
