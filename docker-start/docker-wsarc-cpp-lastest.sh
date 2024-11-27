@@ -1,6 +1,6 @@
 #!/bin/bash
-export DOCKER_IMAGE=intelanalytics/vllm-ipex-experimental:txytest_1010
-export CONTAINER_NAME=junwang-vllm-062
+export DOCKER_IMAGE=intelanalytics/ipex-llm-inference-cpp-xpu:latest
+export CONTAINER_NAME=junwang-cpp-lastest
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \
@@ -9,7 +9,7 @@ sudo docker run -itd \
 	--device=/dev/dri \
 	--name=$CONTAINER_NAME \
 	-v /home/intel/LLM:/llm/models/ \
-	-v /home/intel/junwang:/llm/workspace \
+	-v /home/intel/junwang/vllm-benchmark:/llm/workspace \
 	-e no_proxy=localhost,127.0.0.1 \
 	-e http_proxy=http://proxy.iil.intel.com:911 \
 	-e https_proxy=http://proxy.iil.intel.com:911 \
