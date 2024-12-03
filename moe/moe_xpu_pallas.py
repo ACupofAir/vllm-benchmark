@@ -1,6 +1,6 @@
+import ipex_llm
 import torch
 import torch.nn.functional as F
-# from torch_xla.experimental.custom_kernel import _histogram
 
 #*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|Jun W. Code|>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 def custom_histogram(indices, min, max):
@@ -51,15 +51,12 @@ def fused_moe(
     intermediate_size = w2.shape[-1]
     device = hidden_states.device
     dtype = hidden_states.dtype
+    print('======================DEBUG START: numtoken, topk======================')
+    print(num_tokens, topk)
+    print('======================DEBUG  END : numtoken, topk======================')
     # assert (num_tokens * topk) % 16 == 0, (
     #     "The Pallas GMM kernel requires num_tokens * topk to be a multiple of "
     #     f"16 but got {num_tokens * topk}")
-    #*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>|Jun W. Code|>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    assert_val = num_tokens * topk # ! [todo] padding design for 16 multiple
-    print('======================DEBUG START: assert val======================')
-    print(assert_val, num_tokens, topk)
-    print('======================DEBUG  END : assert val======================')
-    #*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<|Jun W. Code|<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     hidden_states = hidden_states.view(num_tokens, hidden_size)
     gating_output = gating_output.view(num_tokens, num_experts)
@@ -94,3 +91,27 @@ def fused_moe(
     x = x.sum(dim=-2)
     x = x.reshape(orig_shape)
     return x
+
+
+def set_xpu_seed(seed):
+    torch.manual_seed(seed)
+    torch.xpu.manual_seed_all(seed)
+    torch.xpu.manual_seed(seed)
+
+if __name__ == '__main__':
+    set_xpu_seed(42)
+    device = "xpu"
+    dtype = torch.float16
+    input_len = 16
+    num_experts = 64
+    intermediate_size = 352
+    hidden_size = 16
+    hidden_states = torch.randn((input_len, hidden_size), device=device, dtype=dtype)
+    w1 = torch.randn((num_experts, intermediate_size*2, hidden_size), device=device, dtype=dtype)
+    w2 = torch.randn((num_experts, hidden_size, intermediate_size), device=device, dtype=dtype)
+    gating_output = torch.randn((input_len, num_experts), device=device, dtype=dtype)
+    topk = 6
+    renormalize = True
+    out = fused_moe(hidden_states, w1, w2, gating_output, topk, renormalize)
+    print(out)
+    print(out.shape)
