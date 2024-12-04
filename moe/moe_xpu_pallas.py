@@ -66,26 +66,42 @@ def fused_moe(
         topk_weights = topk_weights / topk_weights.sum(dim=-1, keepdim=True)
     topk_weights = topk_weights.to(dtype)
 
-    topk_indices = topk_indices.flatten()
+    print("topk_indices.shape -> ", topk_indices.shape)
+    topk_indices = topk_indices.flatten()#checked
+    print("flatten(), topk_indices.shape -> ", topk_indices.shape)
     topk_argsort_indices = topk_indices.argsort()
+    print("topk_argsort_indices.shape -> ", topk_argsort_indices.shape)
     topk_argsort_revert_indices = topk_argsort_indices.argsort()
-    token_indices = torch.arange(num_tokens,
-                                 device=device).repeat_interleave(topk)
+    print("topk_argsort_revert_indices.shape -> ", topk_argsort_revert_indices.shape)
+    token_indices = torch.arange(num_tokens, device=device).repeat_interleave(topk)
+    print("token_indices.shape -> ", token_indices.shape)
+    print("topk_argsort_indices.shape -> ", topk_argsort_indices.shape)
     token_indices = token_indices[topk_argsort_indices]
-    group_sizes = custom_histogram(topk_indices.to(torch.int32), 0, num_experts - 1)
+    group_sizes = custom_histogram(topk_indices.to(torch.int32), 0, num_experts - 1)#have checked
 
-    # NOTE(woosuk): The GMM Pallas kernel requires a different weight layout
-    # from HF Transformers.
+# NOTE(woosuk): The GMM Pallas kernel requires a different weight layout
+# from HF Transformers.
     w1 = w1.transpose(1, 2)
     w2 = w2.transpose(1, 2)
+    print("w1.shape->", w1.shape, "w2.shape->", w2.shape)
 
+    print("hidden_states.shape->", hidden_states.shape)
     x = hidden_states[token_indices]
+    print("x.shape->", x.shape)
+    print('======================DEBUG START: before gmm======================')
+    print(x, w1, group_sizes)
+    print('======================DEBUG  END : before gmm======================')
     x = custom_gmm(x, w1, group_sizes)
-    # x = torch.ops.xla.gmm(x, w1, group_sizes)
+    print('======================DEBUG START: after gmm======================')
+    print(x)
+    print('======================DEBUG  END : after gmm======================')
+    print("custom-gmm(x, w1) , x.shape->", x.shape)
     x = F.silu(x[..., :intermediate_size]) * x[..., intermediate_size:]
+    print("silu , x.shape->", x.shape)
     x = custom_gmm(x, w2, group_sizes)
-    # x = torch.ops.xla.gmm(x, w2, group_sizes)
+    print("custom-gmm(x, w2) , x.shape->", x.shape)
     x = x[topk_argsort_revert_indices].reshape(-1, topk, hidden_size)
+    print("x.shape->", x.shape)
 
     x = x * topk_weights.unsqueeze_(dim=-1)
     x = x.sum(dim=-2)
@@ -93,23 +109,24 @@ def fused_moe(
     return x
 
 
-def set_xpu_seed(seed):
-    torch.manual_seed(seed)
-    torch.xpu.manual_seed_all(seed)
-    torch.xpu.manual_seed(seed)
-
 if __name__ == '__main__':
-    set_xpu_seed(42)
     device = "xpu"
-    dtype = torch.float16
+    dtype = torch.float32
     input_len = 16
     num_experts = 64
     intermediate_size = 352
     hidden_size = 16
-    hidden_states = torch.randn((input_len, hidden_size), device=device, dtype=dtype)
-    w1 = torch.randn((num_experts, intermediate_size*2, hidden_size), device=device, dtype=dtype)
-    w2 = torch.randn((num_experts, hidden_size, intermediate_size), device=device, dtype=dtype)
-    gating_output = torch.randn((input_len, num_experts), device=device, dtype=dtype)
+
+    # hidden_states = torch.randn((input_len, hidden_size), device=device, dtype=dtype)
+    # w1 = torch.randn((num_experts, intermediate_size*2, hidden_size), device=device, dtype=dtype)
+    # w2 = torch.randn((num_experts, hidden_size, intermediate_size), device=device, dtype=dtype)
+    # gating_output = torch.randn((input_len, num_experts), device=device, dtype=dtype)
+
+    hidden_states = torch.arange(0, input_len*hidden_size, device=device, dtype=dtype).reshape(input_len, hidden_size)
+    w1 = torch.arange(0, num_experts*intermediate_size*2*hidden_size, device=device, dtype=dtype).reshape(num_experts, intermediate_size*2, hidden_size)
+    w2 = torch.arange(0, num_experts*hidden_size*intermediate_size, device=device, dtype=dtype).reshape(num_experts, hidden_size, intermediate_size)
+    gating_output = torch.arange(0, input_len*num_experts, device=device, dtype=dtype).reshape(input_len, num_experts)
+
     topk = 6
     renormalize = True
     out = fused_moe(hidden_states, w1, w2, gating_output, topk, renormalize)
