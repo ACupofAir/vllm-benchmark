@@ -23,7 +23,6 @@ def custom_gmm(x, w, group_sizes):
     for i in range(group_num):
         st = group_sizes[:i].sum()
         ed = group_sizes[:i+1].sum()
-        # print(st,ed,ed-st)
         y = torch.matmul(x[st:ed], w[i].squeeze())
         results.append(y)
     return torch.cat(results, dim=0)
