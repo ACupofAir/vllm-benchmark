@@ -1,28 +1,0 @@
-/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
-  warn(
-Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-7B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=16, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=1024, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
-Starting initial single prompt test run...
-Initial test run completed. Starting main benchmark run...
-Traffic request rate: inf
-  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:18<04:36, 18.46s/it]100%|██████████| 16/16 [00:18<00:00,  1.15s/it]
-============ Serving Benchmark Result ============
-Successful requests:                     16        
-Benchmark duration (s):                  18.46     
-Total input tokens:                      16384     
-Total generated tokens:                  8315      
-Request throughput (req/s):              0.87      
-Output token throughput (tok/s):         450.34    
-Total Token throughput (tok/s):          1337.70   
----------------Time to First Token----------------
-Mean TTFT (ms):                          2717.97   
-Median TTFT (ms):                        3108.60   
-P99 TTFT (ms):                           4121.39   
------Time per Output Token (excl. 1st token)------
-Mean TPOT (ms):                          30.39     
-Median TPOT (ms):                        30.04     
-P99 TPOT (ms):                           34.01     
----------------Inter-token Latency----------------
-Mean ITL (ms):                           31.03     
-Median ITL (ms):                         28.12     
-P99 ITL (ms):                            30.74     
-==================================================
