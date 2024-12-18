@@ -1,0 +1,403 @@
+Running benchmark with num_prompt=1, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=1, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:15<00:00, 15.61s/it]100%|██████████| 1/1 [00:15<00:00, 15.61s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     1         
+Benchmark duration (s):                  15.61     
+Total input tokens:                      4096      
+Total generated tokens:                  512       
+Request throughput (req/s):              0.06      
+Output token throughput (tok/s):         32.79     
+Total Token throughput (tok/s):          295.13    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          1374.27   
+Median TTFT (ms):                        1374.27   
+P99 TTFT (ms):                           1374.27   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          27.86     
+Median TPOT (ms):                        27.86     
+P99 TPOT (ms):                           27.86     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           27.86     
+Median ITL (ms):                         27.82     
+P99 ITL (ms):                            28.33     
+==================================================
+Completed benchmark with num_prompt=1, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=2, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=2, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/2 [00:00<?, ?it/s] 50%|█████     | 1/2 [00:18<00:18, 18.11s/it]100%|██████████| 2/2 [00:18<00:00,  9.05s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     2         
+Benchmark duration (s):                  18.11     
+Total input tokens:                      8192      
+Total generated tokens:                  1023      
+Request throughput (req/s):              0.11      
+Output token throughput (tok/s):         56.50     
+Total Token throughput (tok/s):          508.90    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          2465.90   
+Median TTFT (ms):                        2465.90   
+P99 TTFT (ms):                           2466.00   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          30.64     
+Median TPOT (ms):                        30.64     
+P99 TPOT (ms):                           30.67     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           30.61     
+Median ITL (ms):                         30.60     
+P99 ITL (ms):                            31.17     
+==================================================
+Completed benchmark with num_prompt=2, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=4, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=4, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:22<01:07, 22.43s/it]100%|██████████| 4/4 [00:22<00:00,  5.61s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     4         
+Benchmark duration (s):                  22.43     
+Total input tokens:                      16384     
+Total generated tokens:                  2049      
+Request throughput (req/s):              0.18      
+Output token throughput (tok/s):         91.34     
+Total Token throughput (tok/s):          821.69    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          3712.20   
+Median TTFT (ms):                        3712.24   
+P99 TTFT (ms):                           4931.76   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          36.62     
+Median TPOT (ms):                        36.67     
+P99 TPOT (ms):                           39.02     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           37.31     
+Median ITL (ms):                         34.23     
+P99 ITL (ms):                            68.45     
+==================================================
+Completed benchmark with num_prompt=4, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=6, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=6, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/6 [00:00<?, ?it/s] 17%|█▋        | 1/6 [00:27<02:15, 27.09s/it]100%|██████████| 6/6 [00:27<00:00,  4.52s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     6         
+Benchmark duration (s):                  27.09     
+Total input tokens:                      24576     
+Total generated tokens:                  3066      
+Request throughput (req/s):              0.22      
+Output token throughput (tok/s):         113.17    
+Total Token throughput (tok/s):          1020.27   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          4964.25   
+Median TTFT (ms):                        4949.57   
+P99 TTFT (ms):                           7450.32   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          43.39     
+Median TPOT (ms):                        43.55     
+P99 TPOT (ms):                           48.23     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           43.96     
+Median ITL (ms):                         38.41     
+P99 ITL (ms):                            75.85     
+==================================================
+Completed benchmark with num_prompt=6, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=8, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=8, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:32<03:45, 32.19s/it]100%|██████████| 8/8 [00:32<00:00,  4.02s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     8         
+Benchmark duration (s):                  32.19     
+Total input tokens:                      32768     
+Total generated tokens:                  4095      
+Request throughput (req/s):              0.25      
+Output token throughput (tok/s):         127.20    
+Total Token throughput (tok/s):          1145.04   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          6245.72   
+Median TTFT (ms):                        6257.66   
+P99 TTFT (ms):                           9911.23   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          50.79     
+Median TPOT (ms):                        50.70     
+P99 TPOT (ms):                           58.10     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           51.57     
+Median ITL (ms):                         43.58     
+P99 ITL (ms):                            87.94     
+==================================================
+Completed benchmark with num_prompt=8, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=10, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=10, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/10 [00:00<?, ?it/s] 10%|█         | 1/10 [00:34<05:10, 34.46s/it]100%|██████████| 10/10 [00:34<00:00,  3.45s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     10        
+Benchmark duration (s):                  34.46     
+Total input tokens:                      40960     
+Total generated tokens:                  5119      
+Request throughput (req/s):              0.29      
+Output token throughput (tok/s):         148.54    
+Total Token throughput (tok/s):          1337.05   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          7510.15   
+Median TTFT (ms):                        7600.25   
+P99 TTFT (ms):                           12562.45  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          52.76     
+Median TPOT (ms):                        52.57     
+P99 TPOT (ms):                           64.13     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           53.85     
+Median ITL (ms):                         42.63     
+P99 ITL (ms):                            86.13     
+==================================================
+Completed benchmark with num_prompt=10, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=12, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=12, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/12 [00:00<?, ?it/s]  8%|▊         | 1/12 [00:35<06:35, 35.91s/it] 92%|█████████▏| 11/12 [00:48<00:03,  3.49s/it]100%|██████████| 12/12 [00:53<00:00,  3.72s/it]100%|██████████| 12/12 [00:53<00:00,  4.46s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     12        
+Benchmark duration (s):                  53.57     
+Total input tokens:                      49152     
+Total generated tokens:                  6043      
+Request throughput (req/s):              0.22      
+Output token throughput (tok/s):         112.82    
+Total Token throughput (tok/s):          1030.42   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          10958.31  
+Median TTFT (ms):                        8756.98   
+P99 TTFT (ms):                           35756.00  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          54.82     
+Median TPOT (ms):                        58.03     
+P99 TPOT (ms):                           68.07     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           54.47     
+Median ITL (ms):                         42.99     
+P99 ITL (ms):                            44.80     
+==================================================
+Completed benchmark with num_prompt=12, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=14, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=14, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/14 [00:00<?, ?it/s]  7%|▋         | 1/14 [00:35<07:46, 35.91s/it] 79%|███████▊  | 11/14 [00:51<00:11,  3.79s/it] 86%|████████▌ | 12/14 [00:57<00:08,  4.11s/it]100%|██████████| 14/14 [00:57<00:00,  4.13s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     14        
+Benchmark duration (s):                  57.86     
+Total input tokens:                      57344     
+Total generated tokens:                  7163      
+Request throughput (req/s):              0.24      
+Output token throughput (tok/s):         123.80    
+Total Token throughput (tok/s):          1114.89   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          15266.64  
+Median TTFT (ms):                        11369.50  
+P99 TTFT (ms):                           40769.67  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          51.79     
+Median TPOT (ms):                        52.91     
+P99 TPOT (ms):                           72.17     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           52.70     
+Median ITL (ms):                         42.92     
+P99 ITL (ms):                            68.12     
+==================================================
+Completed benchmark with num_prompt=14, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=16, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=16, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:35<08:58, 35.88s/it] 69%|██████▉   | 11/16 [00:54<00:20,  4.06s/it] 75%|███████▌  | 12/16 [01:02<00:18,  4.56s/it]100%|██████████| 16/16 [01:02<00:00,  3.91s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     16        
+Benchmark duration (s):                  62.50     
+Total input tokens:                      65536     
+Total generated tokens:                  8179      
+Request throughput (req/s):              0.26      
+Output token throughput (tok/s):         130.86    
+Total Token throughput (tok/s):          1179.44   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          18761.94  
+Median TTFT (ms):                        12534.83  
+P99 TTFT (ms):                           43330.16  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          52.09     
+Median TPOT (ms):                        48.86     
+P99 TPOT (ms):                           76.95     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           52.35     
+Median ITL (ms):                         42.73     
+P99 ITL (ms):                            44.13     
+==================================================
+Completed benchmark with num_prompt=16, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=18, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=18, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/18 [00:00<?, ?it/s]  6%|▌         | 1/18 [00:35<10:10, 35.92s/it] 61%|██████    | 11/18 [00:59<00:31,  4.57s/it] 67%|██████▋   | 12/18 [01:08<00:30,  5.03s/it]100%|██████████| 18/18 [01:08<00:00,  3.79s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     18        
+Benchmark duration (s):                  68.18     
+Total input tokens:                      73728     
+Total generated tokens:                  9202      
+Request throughput (req/s):              0.26      
+Output token throughput (tok/s):         134.97    
+Total Token throughput (tok/s):          1216.35   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          21753.26  
+Median TTFT (ms):                        13263.25  
+P99 TTFT (ms):                           46001.50  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          54.93     
+Median TPOT (ms):                        53.78     
+P99 TPOT (ms):                           85.45     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           55.53     
+Median ITL (ms):                         43.18     
+P99 ITL (ms):                            83.69     
+==================================================
+Completed benchmark with num_prompt=18, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=20, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=20, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/20 [00:00<?, ?it/s]  5%|▌         | 1/20 [00:35<11:23, 35.99s/it] 55%|█████▌    | 11/20 [01:02<00:43,  4.83s/it] 60%|██████    | 12/20 [01:10<00:41,  5.21s/it]100%|██████████| 20/20 [01:10<00:00,  3.52s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     20        
+Benchmark duration (s):                  70.50     
+Total input tokens:                      81920     
+Total generated tokens:                  10235     
+Request throughput (req/s):              0.28      
+Output token throughput (tok/s):         145.18    
+Total Token throughput (tok/s):          1307.19   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          24271.50  
+Median TTFT (ms):                        13317.09  
+P99 TTFT (ms):                           48549.47  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          55.93     
+Median TPOT (ms):                        54.36     
+P99 TPOT (ms):                           89.11     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           57.55     
+Median ITL (ms):                         42.77     
+P99 ITL (ms):                            86.74     
+==================================================
+Completed benchmark with num_prompt=20, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=22, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=22, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/22 [00:00<?, ?it/s]  5%|▍         | 1/22 [00:35<12:35, 36.00s/it] 50%|█████     | 11/22 [01:02<00:53,  4.87s/it] 55%|█████▍    | 12/22 [01:13<00:55,  5.55s/it] 95%|█████████▌| 21/22 [01:21<00:02,  2.74s/it]100%|██████████| 22/22 [01:30<00:00,  3.25s/it]100%|██████████| 22/22 [01:30<00:00,  4.09s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     22        
+Benchmark duration (s):                  90.08     
+Total input tokens:                      90112     
+Total generated tokens:                  11248     
+Request throughput (req/s):              0.24      
+Output token throughput (tok/s):         124.86    
+Total Token throughput (tok/s):          1125.20   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          28012.23  
+Median TTFT (ms):                        26263.14  
+P99 TTFT (ms):                           69835.66  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          57.03     
+Median TPOT (ms):                        57.30     
+P99 TPOT (ms):                           90.14     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           57.90     
+Median ITL (ms):                         43.12     
+P99 ITL (ms):                            86.74     
+==================================================
+Completed benchmark with num_prompt=22, random-input-len=4096.
+------------------------------------------------------------
+Running benchmark with num_prompt=24, random-input-len=4096...
+/usr/local/lib/python3.11/dist-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libpng16.so.16: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Namespace(backend='vllm', base_url=None, host='localhost', port=8000, endpoint='/v1/completions', dataset=None, dataset_name='random', dataset_path=None, model='/llm/models/Qwen2.5-14B-Instruct', tokenizer=None, best_of=1, use_beam_search=False, num_prompts=24, logprobs=None, request_rate=inf, seed=0, trust_remote_code=True, disable_tqdm=False, profile=False, save_result=False, metadata=None, result_dir=None, result_filename=None, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=512, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None)
+Starting initial single prompt test run...
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: inf
+  0%|          | 0/24 [00:00<?, ?it/s]  4%|▍         | 1/24 [00:35<13:47, 35.96s/it] 46%|████▌     | 11/24 [01:02<01:02,  4.84s/it] 50%|█████     | 12/24 [01:13<01:06,  5.51s/it] 88%|████████▊ | 21/24 [01:21<00:08,  2.76s/it] 92%|█████████▏| 22/24 [01:35<00:07,  3.69s/it]100%|██████████| 24/24 [01:35<00:00,  3.96s/it]
+============ Serving Benchmark Result ============
+Successful requests:                     24        
+Benchmark duration (s):                  95.04     
+Total input tokens:                      98304     
+Total generated tokens:                  12278     
+Request throughput (req/s):              0.25      
+Output token throughput (tok/s):         129.19    
+Total Token throughput (tok/s):          1163.57   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          32113.82  
+Median TTFT (ms):                        39684.38  
+P99 TTFT (ms):                           77496.97  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          55.18     
+Median TPOT (ms):                        55.44     
+P99 TPOT (ms):                           89.05     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           55.96     
+Median ITL (ms):                         42.97     
+P99 ITL (ms):                            86.19     
+==================================================
+Completed benchmark with num_prompt=24, random-input-len=4096.
+------------------------------------------------------------
