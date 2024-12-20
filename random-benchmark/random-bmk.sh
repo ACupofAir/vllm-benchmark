@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # 定义要测试的 num_prompt 和 random-input-len 值
-num_prompt_values=(1 2 4 6 8 10 12 14 16 18 20 22 24)
+#num_prompt_values=(1 2 4 6 8 10 12 14 16 18 20 22 24)
+num_prompt_values=(1 2 4)
 random_input_len=1024
-model_name="Qwen2.5-14B-Instruct"
+model_name="Qwen2.5-7B-Instruct"
+gpu_num=1
 
 # 基础命令
 base_command="python /llm/vllm/benchmarks/benchmark_serving.py \
@@ -12,7 +14,7 @@ base_command="python /llm/vllm/benchmarks/benchmark_serving.py \
 	--trust_remote_code \
 	--random-output-len=512"
 
-log_file="${model_name}-${random_input_len}-gpu4-results.log"
+log_file="${model_name}-${random_input_len}-gpu${gpu_num}-g95-2000-3000.log"
 
 # 清空或创建日志文件
 > "$log_file"
