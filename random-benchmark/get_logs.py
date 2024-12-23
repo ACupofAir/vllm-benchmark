@@ -1,11 +1,14 @@
 import re
 import csv
 
-with open(r'C:\Users\wangjun9\WorkSpace\vllm-benchmark\random-benchmark\logs\Qwen2.5-14B-Instruct-1024-gpu4-results.log', 'r', encoding='utf-8') as file:
+input_log = r'C:\Users\wangjun9\WorkSpace\vllm-benchmark\random-benchmark\logs\qwen2.5-7b-4096-gpu2.log'
+output_csv = input_log.split('.log')[0] + '.csv'
+with open(input_log, 'r', encoding='utf-8') as file:
     log_data = file.read()
 
+
 pattern = re.compile(
-        r"Running benchmark with num_prompt=(\d+),.*?"
+        r"Running benchmark with batch size (\d+).*?"
         r"Request throughput \(req/s\):\s+([\d.]+).*?"
         r"Output token throughput \(tok/s\):\s+([\d.]+).*?"
         r"Total Token throughput \(tok/s\):\s+([\d.]+).*?"
@@ -16,8 +19,11 @@ pattern = re.compile(
 )
 
 matches = pattern.findall(log_data)
+print('======================DEBUG START: matches======================')
+print(matches)
+print('======================DEBUG  END : matches======================')
 
-with open('benchmark_results.csv', 'w', newline='') as csvfile:
+with open(output_csv, 'w', newline='') as csvfile:
         fieldnames = ['num_prompt', 'req/s', 'Output TPS', 'Total TPS', 'TTFT(mean)', 'TPOT(mean)', 'ITL(mean)']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
