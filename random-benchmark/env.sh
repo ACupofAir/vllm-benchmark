@@ -1,0 +1,2 @@
+export CCL_SAME_STREAM=1 
+export CCL_BLOCKING_WAIT=0
