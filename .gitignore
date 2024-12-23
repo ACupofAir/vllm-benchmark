@@ -2,6 +2,7 @@
 logs/*
 logs_summary.csv
 logs_summary_for_excel.csv
+*.csv
 =======
 # Byte-compiled / optimized / DLL files
 __pycache__/
