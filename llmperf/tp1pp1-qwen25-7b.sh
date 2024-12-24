@@ -2,6 +2,8 @@
 model="/llm/models/Qwen2.5-7B-Instruct"
 served_model_name="Qwen2.5-7B-Instruct"
 
+export CCL_SAME_STREAM=1
+export CCL_BLOCKING_WAIT=0
 export CCL_WORKER_COUNT=2
 export FI_PROVIDER=shm
 export CCL_ATL_TRANSPORT=ofi
@@ -29,5 +31,4 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --max-num-batched-tokens 3000 \
   --tensor-parallel-size 1 \
   --disable-async-output-proc \
-  --api-key 123456 \
   --distributed-executor-backend ray

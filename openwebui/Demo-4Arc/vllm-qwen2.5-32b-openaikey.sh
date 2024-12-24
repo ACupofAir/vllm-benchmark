@@ -2,8 +2,9 @@
 model="/llm/models/Qwen2.5-32B-Instruct"
 served_model_name="Qwen2.5-32B-4xARC770-IPEX-LLM-vLLM"
 
-# export SYCL_CACHE_PERSISTENT=1
-export CCL_WORKER_COUNT=4
+export CCL_SAME_STREAM=1
+export CCL_BLOCKING_WAIT=0
+export CCL_WORKER_COUNT=2
 export FI_PROVIDER=shm
 export CCL_ATL_TRANSPORT=ofi
 export CCL_ZE_IPC_EXCHANGE=sockets
