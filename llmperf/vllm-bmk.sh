@@ -13,4 +13,4 @@ python token_benchmark_ray.py \
   --num-concurrent-requests 1 \
   --llm-api openai \
   --results-dir "result_outputs" \
-  --additional-sampling-params '{}
+  --additional-sampling-params '{}'
