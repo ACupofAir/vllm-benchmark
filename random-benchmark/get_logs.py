@@ -1,7 +1,7 @@
 import re
 import csv
 
-input_log = r'C:\Users\wangjun9\WorkSpace\vllm-benchmark\random-benchmark\logs\qwen2.5-7b-4096-gpu2.log'
+input_log = r'C:\Users\wangjun9\WorkSpace\vllm-benchmark\random-benchmark\logs\qwen2.5-32b-4gpu.log'
 output_csv = input_log.split('.log')[0] + '.csv'
 with open(input_log, 'r', encoding='utf-8') as file:
     log_data = file.read()
