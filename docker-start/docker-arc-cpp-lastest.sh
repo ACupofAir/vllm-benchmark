@@ -1,6 +1,6 @@
 #!/bin/bash
 export DOCKER_IMAGE=intelanalytics/ipex-llm-inference-cpp-xpu:latest
-export CONTAINER_NAME=junwang-cpp-lastest
+export CONTAINER_NAME=junwang-cpp-lst
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \
