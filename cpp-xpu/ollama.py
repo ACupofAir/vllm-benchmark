@@ -58,6 +58,7 @@ def benchmark_context(*, port=11434, window=24*1024, utilization=0.8, model='qwe
         counter += 1
         prompt_tokens = response['prompt_eval_count']
         prompt_nanos = response['prompt_eval_duration']
+        print(f'tokens: { prompt_tokens },\t time: { prompt_nanos }')
         print(f'{prompt_tokens/1024:,.1f}K @ {prompt_tokens / (prompt_nanos * 1e-9):,.0f} t/s')
 
 if __name__ == '__main__':
