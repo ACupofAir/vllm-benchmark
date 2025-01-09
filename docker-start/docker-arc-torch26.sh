@@ -1,5 +1,5 @@
-export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:pytorch23
-export CONTAINER_NAME=junwang-llm-torch23
+export DOCKER_IMAGE=10.239.45.10/arda/intelanalytics/ipex-llm-serving-xpu:pytorch26
+export CONTAINER_NAME=junwang-llm-torch26
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \
