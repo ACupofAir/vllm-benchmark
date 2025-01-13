@@ -9,6 +9,5 @@ docker run -itd \
            -e PORT=8081 \
            --privileged \
            --network=host \
-           --add-host=host.docker.internal:host-gateway \
            --name $CONTAINER_NAME \
            --restart always $DOCKER_IMAGE
