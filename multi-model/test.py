@@ -1,3 +1,4 @@
+import ipex_llm
 import os
 import time
 import torch
@@ -157,11 +158,11 @@ def test_whisper(whisper_processor, whisper_model, report, is_report):
 
 
 if __name__ == "__main__":
-    # [config]
+    # TODO:[config]
     device = "GPU"
     llm_test = True
-    sd_test = True
-    minicpm_test = True
+    sd_test = False
+    minicpm_test = False
     wp_test = True
     metric_report = []
     test_loop = 10
@@ -192,13 +193,15 @@ if __name__ == "__main__":
         # Load processor
         whisper_processor = WhisperProcessor.from_pretrained(whisper_model_path)
         print("============ whisper load to gpu")
-        test_whisper(whisper_processor, whisper_model, metric_report, False)
+        # test_whisper(whisper_processor, whisper_model, metric_report, False)
         print("============ whisper warm up done!")
 
     #############
     # load chatglm
     #############
     if llm_test:
+        # dummy_elements_num = 490 * 1024 * 1024 // 4
+        # dummy_tensor = torch.zeros(dummy_elements_num, dtype=torch.float32, device="xpu")
         llm_model_path = "/home/arda/LLM/chatglm3-6b"
         save_directory = "/home/arda/junwang/model_low_bit/chatglm3-6b"
         llm_tokenizer = AutoTokenizer.from_pretrained(
@@ -221,7 +224,7 @@ if __name__ == "__main__":
         if device == "GPU":
             llm_model.to("xpu")
         print("============ llm load to gpu")
-        test_chatglm(llm_model, llm_tokenizer, metric_report, False)
+        # test_chatglm(llm_model, llm_tokenizer, metric_report, False)
         print("============ llm warm done!")
 
     ##########################
@@ -234,7 +237,7 @@ if __name__ == "__main__":
         )
         sd_model.to("xpu")
         print("============ sd load to gpu")
-        test_sd(sd_model, metric_report, False)
+        # test_sd(sd_model, metric_report, False)
         print("============ sd warm done!")
 
     #############
@@ -280,7 +283,7 @@ if __name__ == "__main__":
 
         minicpm_model = minicpm_model.half().to("xpu")
         print("============ cpm load to gpu")
-        test_minicpm(minicpm_model, minicpm_tokenizer, metric_report, False)
+        # test_minicpm(minicpm_model, minicpm_tokenizer, metric_report, False)
         print("============ cpm warm up done!")
 
     #############
