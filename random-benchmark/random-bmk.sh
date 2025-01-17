@@ -21,11 +21,13 @@ log_file="${model_name}-${random_input_len}-gpu${gpu_num}-g95-2000-3000.log"
 
 for num_prompt in "${num_prompt_values[@]}"
 do
-	echo "Running benchmark with num_prompt=${num_prompt}, random-input-len=${random_input_len}..." | tee -a "$log_file"
+	echo "Running benchmark with batch size ${num_prompt}, random-input-len=${random_input_len}..." | tee -a "$log_file"
 	$base_command --num_prompt "$num_prompt" --random-input-len "$random_input_len" >> "$log_file" 2>&1
-	echo "Completed benchmark with num_prompt=${num_prompt}, random-input-len=${random_input_len}." | tee -a "$log_file"
+	echo "Completed benchmark with batch size ${num_prompt}, random-input-len=${random_input_len}." | tee -a "$log_file"
 	echo "------------------------------------------------------------" | tee -a "$log_file"
 done
 
 echo "All benchmarks completed. Results are saved in $log_file"
 
+
+python get_logs.py $log_file

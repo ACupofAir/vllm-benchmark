@@ -1,14 +1,16 @@
 import re
 import csv
+import sys
 
-input_log = r'C:\Users\wangjun9\WorkSpace\vllm-benchmark\random-benchmark\logs\Yi-1.5-34B-1024-gpu4.log'
+# input_log = r'C:\Users\wangjun9\WorkSpace\vllm-benchmark\random-benchmark\logs\tmp.log'
+input_log = sys.argv[1]
 output_csv = input_log.split('.log')[0] + '.csv'
 with open(input_log, 'r', encoding='utf-8') as file:
     log_data = file.read()
 
 
 pattern = re.compile(
-        r"Running benchmark with num_prompt=(\d+).*?"
+        r"Running benchmark with batch size (\d+).*?"
         r"Request throughput \(req/s\):\s+([\d.]+).*?"
         r"Output token throughput \(tok/s\):\s+([\d.]+).*?"
         r"Total Token throughput \(tok/s\):\s+([\d.]+).*?"
