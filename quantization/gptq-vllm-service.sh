@@ -1,6 +1,6 @@
 #!/bin/bash
-model="/llm/models/Qwen2.5-32B-Instruct"
-served_model_name="Qwen2.5-32B-Instruct"
+model="/llm/models/Qwen2.5-32B-Instruct-GPTQ-Int4"
+served_model_name="Qwen2.5-32B-Instruct-GPTQ-Int4"
 
 export CCL_WORKER_COUNT=2
 export SYCL_CACHE_PERSISTENT=1
@@ -28,7 +28,8 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --device xpu \
   --dtype float16 \
   --enforce-eager \
-  --load-in-low-bit fp8 \
+  --quantization gptq \
+  --load-in-low-bit asym_int4 \
   --max-model-len 2000 \
   --max-num-batched-tokens 3000 \
   --max-num-seqs 256 \
