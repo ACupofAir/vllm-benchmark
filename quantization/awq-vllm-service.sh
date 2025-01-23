@@ -1,6 +1,6 @@
 #!/bin/bash
-model="/llm/models/Qwen2.5-32B-Instruct-GPTQ-Int4"
-served_model_name="Qwen2.5-32B-Instruct-GPTQ-Int4"
+model="/llm/models/Llama-3.2-3B-Instruct-AWQ"
+served_model_name="Llama-3.2-3B-Instruct-AWQ"
 
 export CCL_WORKER_COUNT=2
 export SYCL_CACHE_PERSISTENT=1
@@ -20,7 +20,7 @@ source /opt/intel/1ccl-wks/setvars.sh
 
 python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --served-model-name $served_model_name \
-  --port 8001 \
+  --port 8000 \
   --model $model \
   --trust-remote-code \
   --block-size 8 \
@@ -28,11 +28,11 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --device xpu \
   --dtype float16 \
   --enforce-eager \
-  --quantization gptq \
+  --quantization awq \
   --load-in-low-bit asym_int4 \
   --max-model-len 2000 \
   --max-num-batched-tokens 3000 \
   --max-num-seqs 256 \
-  --tensor-parallel-size 4 \
+  --tensor-parallel-size 2 \
   --disable-async-output-proc \
   --distributed-executor-backend ray

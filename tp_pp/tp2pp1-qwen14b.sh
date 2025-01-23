@@ -27,6 +27,6 @@ python -m ipex_llm.vllm.xpu.entrypoints.openai.api_server \
   --load-in-low-bit fp8 \
   --max-model-len 2048 \
   --max-num-batched-tokens 4000 \
-  --max-num-seqs 12 \
+  --max-num-seqs 256 \
   --tensor-parallel-size 2\
   --distributed-executor-backend ray
