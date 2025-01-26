@@ -12,5 +12,5 @@ sudo docker run -itd \
 	-e no_proxy=localhost,127.0.0.1 \
 	-e http_proxy=http://proxy.ims.intel.com:911 \
 	-e https_proxy=http://proxy.ims.intel.com:911 \
-	--shm-size="32g" \
+	--shm-size="16g" \
 	$DOCKER_IMAGE

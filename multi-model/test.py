@@ -161,8 +161,8 @@ if __name__ == "__main__":
     # TODO:[config]
     device = "GPU"
     llm_test = True
-    sd_test = False
-    minicpm_test = False
+    sd_test = True
+    minicpm_test = True
     wp_test = True
     metric_report = []
     test_loop = 10
