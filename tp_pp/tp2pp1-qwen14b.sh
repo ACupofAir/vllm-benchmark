@@ -1,6 +1,6 @@
 #!/bin/bash
-model="/llm/models/Qwen1.5-14B-Chat"
-served_model_name="Qwen1.5-14B-Chat"
+model="/llm/models/Qwen2.5-14B-Instruct"
+served_model_name="Qwen2.5-14B-Instruct"
 
 export SYCL_CACHE_PERSISTENT=1
 export CCL_WORKER_COUNT=2
