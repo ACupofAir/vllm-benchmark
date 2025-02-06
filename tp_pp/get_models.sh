@@ -1,1 +1,3 @@
-curl http://localhost:8000/v1/models -H "Content-Type: application/json" -H "Authorization: Bearer 123456"
+set +x
+port=$1
+curl http://localhost:$port/v1/models -H "Content-Type: application/json" -H "Authorization: Bearer 123456"
