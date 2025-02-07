@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER_IMAGE=ghcr.io/open-webui/open-webui:main
+export DOCKER_IMAGE=ghcr.io/open-webui/open-webui:old
 export CONTAINER_NAME=junwang-open-webui
 
 docker rm -f $CONTAINER_NAME

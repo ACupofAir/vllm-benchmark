@@ -20,14 +20,15 @@ llm = LLM(model=model_path,
           device="xpu",
           dtype="float16",
           enforce_eager=True,
-          load_in_low_bit="fp6_k",
-          tensor_parallel_size=1,
+          load_in_low_bit="fp6",
+          tensor_parallel_size=tp_num,
           disable_async_output_proc=True,
           distributed_executor_backend="ray",
           max_model_len=2000,
           trust_remote_code=True,
           block_size=8,
           max_num_batched_tokens=2000)
+print(llm)
 # Generate texts from the prompts. The output is a list of RequestOutput objects
 # that contain the prompt, generated text, and other information.
 outputs = llm.generate(prompts, sampling_params)
