@@ -3,6 +3,7 @@ model_name=$1
 port=$2
 curl http://localhost:$port/v1/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer intel123" \
   -d "{
   \"model\": \"$model_name\",
   \"prompt\": \"New York is the \",

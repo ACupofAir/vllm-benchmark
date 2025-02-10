@@ -1,6 +1,6 @@
 #!/bin/bash
-export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:2.2.0-b6
-export CONTAINER_NAME=ipex-llm-b6
+export DOCKER_IMAGE=intelanalytics/ipex-llm-serving-xpu:2.2.0-b12
+export CONTAINER_NAME=ipex-llm-b12
 
 docker rm -f $CONTAINER_NAME
 sudo docker run -itd \
