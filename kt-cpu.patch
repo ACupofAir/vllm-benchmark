@@ -1,0 +1,145 @@
+diff --git a/ktransformers/operators/experts.py b/ktransformers/operators/experts.py
+index 0dbadd6..6eb50a1 100644
+--- a/ktransformers/operators/experts.py
++++ b/ktransformers/operators/experts.py
+@@ -190,10 +190,10 @@ class KExpertsCPU(KExpertsBase):
+         if self.out_device not in KExpertsCPU.output_gpu_map:
+             KExpertsCPU.output_gpu_map[self.out_device] = torch.zeros((self.config.hidden_size), device=self.out_device)
+         if KExpertsCPU.input_tensor_cpu == None:
+-            KExpertsCPU.input_tensor_cpu = torch.zeros((self.config.hidden_size), device="cpu", pin_memory=True)
+-            KExpertsCPU.expert_ids_cpu = torch.zeros((num_experts_per_tok), device="cpu", dtype=torch.long, pin_memory=True)
+-            KExpertsCPU.weights_cpu = torch.zeros((num_experts_per_tok), device="cpu", dtype=torch.float32, pin_memory=True)
+-            KExpertsCPU.output_cpu = torch.zeros((self.config.hidden_size), device="cpu", pin_memory=True, dtype=torch.bfloat16)
++            KExpertsCPU.input_tensor_cpu = torch.zeros((self.config.hidden_size), device="cpu", pin_memory=False)
++            KExpertsCPU.expert_ids_cpu = torch.zeros((num_experts_per_tok), device="cpu", dtype=torch.long, pin_memory=False)
++            KExpertsCPU.weights_cpu = torch.zeros((num_experts_per_tok), device="cpu", dtype=torch.float32, pin_memory=False)
++            KExpertsCPU.output_cpu = torch.zeros((self.config.hidden_size), device="cpu", pin_memory=False, dtype=torch.bfloat16)
+             
+     def submit_for_one_decode(self, input_tensor, expert_ids, weights):
+         KExpertsCPU.input_tensor_cpu.copy_(input_tensor, non_blocking=True)
+@@ -1021,4 +1021,4 @@ class KMistralSparseMoEBlock(BaseInjectedModule, MixtralSparseMoeBlock):
+             # the `top_x` tensor here.
+             final_hidden_states.index_add_(0, top_x, current_hidden_states.to(hidden_states_cpu.dtype))
+ 
+-        return final_hidden_states
+\ No newline at end of file
++        return final_hidden_states
+diff --git a/ktransformers/operators/linear.py b/ktransformers/operators/linear.py
+index 9d7685b..d6c3f79 100644
+--- a/ktransformers/operators/linear.py
++++ b/ktransformers/operators/linear.py
+@@ -18,14 +18,14 @@ if torch.cuda.is_available():
+     import KTransformersOps
+ from ktransformers.util.custom_gguf import GGUFLoader
+ from ktransformers.util.utils import InferenceState
+-if not torch.xpu.is_available():
+-    from ktransformers.ktransformers_ext.operators.custom_marlin.quantize.utils.marlin_utils import (
+-        MarlinWorkspace,
+-        marlin_quantize,
+-        GPTQ_MARLIN_MIN_THREAD_N,
+-        GPTQ_MARLIN_MIN_THREAD_K,
+-        GPTQ_MARLIN_MAX_PARALLEL,
+-    )
++#if not torch.xpu.is_available():
++#    from ktransformers.ktransformers_ext.operators.custom_marlin.quantize.utils.marlin_utils import (
++#        MarlinWorkspace,
++#        marlin_quantize,
++#        GPTQ_MARLIN_MIN_THREAD_N,
++#        GPTQ_MARLIN_MIN_THREAD_K,
++#        GPTQ_MARLIN_MAX_PARALLEL,
++#    )
+ from ktransformers.operators.base_operator import BaseInjectedModule
+ from transformers.configuration_utils import PretrainedConfig
+ from ktransformers.ktransformers_ext.triton.fp8gemm import fp8_gemm, act_quant, weight_dequant
+diff --git a/ktransformers/util/custom_gguf.py b/ktransformers/util/custom_gguf.py
+index 14a3b64..2e71011 100644
+--- a/ktransformers/util/custom_gguf.py
++++ b/ktransformers/util/custom_gguf.py
+@@ -24,8 +24,8 @@ from typing import Sequence
+ import os
+ from enum import IntEnum
+ import torch
+-if not torch.xpu.is_available():
+-    import KTransformersOps
++#if not torch.xpu.is_available():
++#    import KTransformersOps
+ from .custom_loader import SafeTensorLoader
+ import ctypes
+ import math
+@@ -306,6 +306,7 @@ class GGUFLoader:
+         data = self.get_mmap_tensor(name)
+         ggml_type = t["ggml_type"]
+         data = torch.from_numpy(data)
++        breakpoint()
+         return data, ggml_type
+ 
+     def load_expert_tensor(self, name, data, expert_id, elements_per_expert, device = "cuda", target_dtype = torch.get_default_dtype())->torch.Tensor:
+diff --git a/ktransformers/util/custom_loader.py b/ktransformers/util/custom_loader.py
+index b8c6b2e..904b4b5 100644
+--- a/ktransformers/util/custom_loader.py
++++ b/ktransformers/util/custom_loader.py
+@@ -7,8 +7,8 @@ from typing import Sequence
+ import os
+ from enum import IntEnum
+ import torch
+-if not torch.xpu.is_available():
+-    import KTransformersOps
++#if not torch.xpu.is_available():
++#    import KTransformersOps
+ from safetensors import safe_open
+ from ktransformers.ktransformers_ext.triton.fp8gemm import fp8_gemm, act_quant, weight_dequant
+ from safetensors.torch import save_file
+@@ -84,4 +84,4 @@ class SafeTensorLoader:
+             if key[:-7] + ".weight_scale_inv" in self.tensor_file_map:
+                 weight_scale_inv = f.get_tensor(key[:-7] + ".weight_scale_inv").to(device)
+                 tensor = weight_dequant(tensor, weight_scale_inv)
+-        return tensor.to(device)
+\ No newline at end of file
++        return tensor.to(device)
+diff --git a/setup.py b/setup.py
+index d4b3ac7..c366e5a 100644
+--- a/setup.py
++++ b/setup.py
+@@ -221,8 +221,8 @@ class VersionInfo:
+             backend_version = f"rocm{self.get_rocm_bare_metal_version(ROCM_HOME)}"
+         elif torch.xpu.is_available():
+             backend_version = f"xpu"
+-        else:
+-            raise ValueError("Unsupported backend: CUDA_HOME MUSA_HOME ROCM_HOME all not set.")
++#        else:
++#            raise ValueError("Unsupported backend: CUDA_HOME MUSA_HOME ROCM_HOME all not set.")
+         package_version = f"{flash_version}+{backend_version}torch{torch_version}{cpu_instruct}"
+         if full_version:
+             return package_version
+@@ -321,8 +321,8 @@ class CMakeBuild(BuildExtension):
+             cmake_args += ["-DKTRANSFORMERS_USE_ROCM=ON"]
+         elif KTRANSFORMERS_BUILD_XPU:
+             cmake_args += ["-DKTRANSFORMERS_USE_XPU=ON"]
+-        else:
+-            raise ValueError("Unsupported backend: CUDA_HOME and MUSA_HOME are not set.")
++#        else:
++#            raise ValueError("Unsupported backend: CUDA_HOME and MUSA_HOME are not set.")
+         # log cmake_args
+         print("CMake args:", cmake_args)
+         
+@@ -445,8 +445,8 @@ elif MUSA_HOME is not None:
+     )
+ elif torch.xpu.is_available(): #XPUExtension is not available now.
+     pass
+-else:
+-    raise ValueError("Unsupported backend: CUDA_HOME and MUSA_HOME are not set.")
++#else:
++#    raise ValueError("Unsupported backend: CUDA_HOME and MUSA_HOME are not set.")
+ 
+ if torch.xpu.is_available(): 
+     setup(
+@@ -462,6 +462,6 @@ else:
+         cmdclass={"bdist_wheel":BuildWheelsCommand ,"build_ext": CMakeBuild},
+         ext_modules=[
+             CMakeExtension("cpuinfer_ext"),
+-            ops_module,
++            #ops_module,
+         ] 
+-    )
+\ No newline at end of file
++    )
