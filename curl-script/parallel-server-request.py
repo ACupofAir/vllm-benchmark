@@ -9,13 +9,12 @@ from typing import Final
 
 import requests
 
-NUM_INSTANCES: Final[int] = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 LLM_SERVER_URL: Final[str] = "http://localhost:8001"
-
+NUM_INSTANCES: Final[int] = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 CONNECT_TIMEOUT: float = 300.0
 RESPONSE_TIMEOUT: float = 300.0
-
 MAXIMUM_RUNTIME: int = 3000
+MAX_TOKENS: int = 100
 
 
 def print_health() -> None:
@@ -41,6 +40,7 @@ def task(id_: int) -> None:
                 ),
             },
         ],
+        "max_tokens": MAX_TOKENS,
         "stream": True,
     }
     try:
