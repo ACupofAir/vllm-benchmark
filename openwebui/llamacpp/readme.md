@@ -1,6 +1,37 @@
 # Llama.cpp Serving Demo with Openwebui
+## Performance settings
+1. GPU Frequency setting:
+```bash
+sudo xpu-smi config -d 0 -t 0 --frequencyrange 2400,2400
+sudo xpu-smi config -d 1 -t 0 --frequencyrange 2400,2400
+```
+
+2. CPU Frequency setting: use `lscpu` to check the max frequency supported, and how many cores it has
+```bash
+sudo cpupower frequency-set -d 4.8GHz -u 4.8GHz
+```
+and `cat  /sys/devices/system/cpu/cpufreq/policy{0..120}/scaling_cur_freq` to check the current frequency of cpu
+
+3. Set machine to `performance` model, can use `cpupower frequency-info` to check
+```bash
+sudo cpupower frequency-set -g performance
+```
 
 ## Backend with Llama.cpp Serving
+
+### Step1: Get llama.cpp
+
+**Using Release Version**
+
+1. Find the download link on this page
+2. Download and extract it
+
+```bash
+wget https://github.com/ipex-llm/ipex-llm/releases/download/v2.2.0/llama-cpp-ipex-llm-2.2.0-ubuntu-xeon.tgz
+tar -zxvf llama-cpp-ipex-llm-2.2.0-ubuntu-xeon.tgz
+```
+
+**Manual Build(optional)**
 
 1. Build and install llama.cpp from source code
 
@@ -31,31 +62,15 @@
     cd build
     cmake .. -DGGML_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DLLAMA_BUILD_TESTS=OFF -DGGML_USE_BIGDL=ON
     cmake --build . --config Release -j -v
-    cd bin
    ```
 
-   4. start DeepSeek-Q4_K_M using llama.cpp in the `llama-cpp-bigdl/build/bin` directory
-      - t: thread, recomment to the physic core in the machine
-      - c: ctx too large may lead to OOM of GPU, the biggest test is 10240
-      - alias: the model name serving
-      - port: the port of llamacpp serving
+### Step2: start llama-server
 
-   * w9:
-   ```bash
-    export SYCL_CACHE_PERSISTENT=1
-    export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
-    export IPEX_LLM_SCHED_MAX_COPIES=1
-    export IPEX_LLM_QUANTIZE_KV_CACHE=1 # to enable fp8 kv cache
-    /home/intel/junwang/llama-cpp-bigdl/build/bin/llama-server -m /home/intel/LLM/DeepSeek-R1-GGUF/DeepSeek-R1-Q4_K_M/DeepSeek-R1-Q4_K_M-00001-of-00009.gguf -t 60 -e -ngl 99 -c 10240 --temp 0 --no-context-shift -ot exps=CPU --no-mmap --host 0.0.0.0 --port 8001 --alias DeepSeek-R1-Q4_K_M
-   ```
-   * 云尖:
-   ```bash
-    export SYCL_CACHE_PERSISTENT=1
-    export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
-    export IPEX_LLM_SCHED_MAX_COPIES=1
-    export IPEX_LLM_QUANTIZE_KV_CACHE=1 # to enable fp8 kv cache
-    /home/intel/junwang/llama-cpp-bigdl/build/bin/llama-server -m /home/intel/LLM/DeepSeek-R1-Q4_K_M/DeepSeek-R1-Q4_K_M-00001-of-00009.gguf -t 64 -e -ngl 99 -c 10240 --no-context-shift -ot exps=CPU --no-mmap --host 0.0.0.0 --port 8001 --alias DeepSeek-R1-Q4_K_M 
-   ```
+Example llamacpp backend script is available `llamacpp-backend.sh`, change the `LLAMA_SERVER` to the llamacpp path and `MODEL` to model path and start it using following command.
+
+```bash
+bash llamacpp-backend.sh
+```
 
 ## Frontend with Openwebui
 
@@ -84,4 +99,4 @@ bash openwebui-520.sh
    2. click the `Connection` button on left bar
    3. recommend to disable the `Ollama API` to reduce to useless request send to ollama serving address
    4. click `+` button on upper right, and `url` is the llama.cpp address `http://localhost:8001/v1`, `api-key` can be any string, click the sync button to check the api address is available, and save it.
-   ![](assets\readme_2025-03-26_11-26-00.png)
+      ![](assets\readme_2025-03-26_11-26-00.png)
