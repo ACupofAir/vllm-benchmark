@@ -15,4 +15,4 @@ docker run -itd \
   --restart always $DOCKER_IMAGE
   #-e http_proxy=http://proxy.iil.intel.com:911 \
   #-e https_proxy=http://proxy.iil.intel.com:911 \
-  #-e no_proxy=localhost,127.0.0.1,1
+  #-e no_proxy=localhost,127.0.0.1
