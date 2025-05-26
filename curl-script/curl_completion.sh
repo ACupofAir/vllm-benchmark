@@ -28,10 +28,11 @@ curl http://localhost:$port/v1/completions \
   -H "Authorization: Bearer intel123" \
   -d "{
   \"model\": \"$model_name\",
-  \"prompt\": \"New York is the \",
+  \"prompt\": \"I like eat apple\",
   \"max_tokens\": 1,
   \"temperature\": 0.0,
   \"logprobs\": 2,
-  \"echo\": \"True\"
+  \"cache_prompt\": false,
+  \"echo\": true
 }"
 
