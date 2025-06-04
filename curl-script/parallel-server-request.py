@@ -42,6 +42,7 @@ def task(id_: int) -> None:
         ],
         "max_tokens": MAX_TOKENS,
         "stream": True,
+        "max_tokens": 100,
     }
     try:
         with requests.post(

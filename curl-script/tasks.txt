@@ -1,0 +1,10 @@
+# TASK 0
+
+<think>
+Okay, so I need to explain how satellite constellations like Starlink contribute to the Kessler syndrome and why that's a problem for the future. Let me start by recalling what Kessler syndrome is. I think it's when there's so much space debris in low Earth orbit that collisions happen frequently, creating more debris, and it's a cascading problem. So, the idea is that adding a lot of satellites, like the thousands Starlink plans to deploy, increases the risk
+
+# TASK 1
+
+<think>
+Okay, so I need to understand how satellite constellations like Starlink contribute to the Kessler syndrome and why that's a problem for the future. Let me start by recalling what I know about Kessler syndrome. From what I remember, it's a scenario where the amount of space debris in low Earth orbit (LEO) becomes so high that collisions between objects create even more debris, leading to a cascading effect. This could make certain orbital regions unusable because of the high risk
+
