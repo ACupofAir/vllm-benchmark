@@ -1,0 +1,39 @@
+diff --git a/ggml/src/CMakeLists.txt b/ggml/src/CMakeLists.txt
+index 03c4edca..2e708884 100644
+--- a/ggml/src/CMakeLists.txt
++++ b/ggml/src/CMakeLists.txt
+@@ -379,3 +379,6 @@ if (BUILD_SHARED_LIBS)
+         target_compile_definitions(${target} PUBLIC  GGML_SHARED)
+     endforeach()
+ endif()
++target_include_directories(ggml-base PUBLIC "/home/bmg/junwang/ittapi/include")
++target_link_libraries(ggml-base PUBLIC "/home/bmg/junwang/ittapi/build_linux/64/bin/libittnotify.a")
++target_link_libraries(ggml-base PUBLIC "/home/bmg/junwang/ittapi/build_linux/64/bin/libjitprofiling.a")
+\ No newline at end of file
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 3c65883c..03a29c66 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -396,8 +396,10 @@ llama_context::~llama_context() {
+     ggml_opt_free(opt_ctx);
+ }
+ 
++#include <ittnotify.h>
+ void llama_context::synchronize() {
+     ggml_backend_sched_synchronize(sched.get());
++    __itt_pause();
+ 
+     // FIXME: if multiple single tokens are evaluated without a synchronization,
+     // the stats will be added to the prompt evaluation stats
+@@ -2829,9 +2831,11 @@ int32_t llama_encode(
+     return ret;
+ }
+ 
++#include <ittnotify.h>
+ int32_t llama_decode(
+         llama_context * ctx,
+           llama_batch   batch) {
++    __itt_resume();
+     const int ret = ctx->decode(batch);
+     if (ret != 0 && ret != 1) {
+         LLAMA_LOG_ERROR("%s: failed to decode, ret = %d\n", __func__, ret);
