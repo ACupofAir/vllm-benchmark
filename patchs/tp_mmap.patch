@@ -1,0 +1,55 @@
+diff --git a/ggml/src/ggml-sycl/ggml-sycl.cpp b/ggml/src/ggml-sycl/ggml-sycl.cpp
+index 9b3e1729..ec4f09aa 100644
+--- a/ggml/src/ggml-sycl/ggml-sycl.cpp
++++ b/ggml/src/ggml-sycl/ggml-sycl.cpp
+@@ -1238,11 +1238,15 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+ 
+             ggml_sycl_set_device(i);
+             const queue_ptr stream = ctx->streams[i];
+-
+-            SYCL_CHECK(CHECK_TRY_ERROR(
+-                (*stream)
+-                    .memcpy(extra->data_device[i], buf_pagable, original_size)// gpu memory alloc done on using
+-                    .wait()));
++            char * host_buf = (char *) malloc(original_size);
++            memcpy(host_buf, buf_pagable, original_size);
++            SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++            free(host_buf);
++
++//            SYCL_CHECK(CHECK_TRY_ERROR(
++//                (*stream)
++//                    .memcpy(extra->data_device[i], buf_pagable, original_size)// gpu memory alloc done on using
++//                    .wait()));
+             // TPTODO low priority: make this buffer
+             free(buf_pagable);
+         }
+@@ -1432,9 +1436,12 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+ 
+            ggml_sycl_set_device(i);
+            const queue_ptr stream = ctx->streams[i];
+-           SYCL_CHECK(CHECK_TRY_ERROR(
+-               (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
+            // TPTODO low priority: make this buffer
++           char * host_buf = (char *) malloc(original_size);
++           memcpy(host_buf, buf_pagable, original_size);
++           SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++           free(host_buf);
++           // SYCL_CHECK(CHECK_TRY_ERROR( (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
+            free(buf_pagable);
+         }
+         break;
+@@ -1449,8 +1456,13 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+ 
+             ggml_sycl_set_device(i);
+             const queue_ptr stream = ctx->streams[i];
++            char * host_buf = (char *) malloc(original_size);
++            memcpy(host_buf, (const char *)data, original_size);
+             SYCL_CHECK(CHECK_TRY_ERROR(
+-                (*stream).memcpy(extra->data_device[i], (const char *)data, original_size).wait()));
++                (*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++            free(host_buf);
++            // SYCL_CHECK(CHECK_TRY_ERROR(
++            //     (*stream).memcpy(extra->data_device[i], (const char *)data, original_size).wait()));
+         }
+         break;
+     default:
