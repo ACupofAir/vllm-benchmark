@@ -1,0 +1,92 @@
+diff --git a/ggml/src/ggml-sycl/ggml-sycl.cpp b/ggml/src/ggml-sycl/ggml-sycl.cpp
+index 9b3e1729..7738990d 100644
+--- a/ggml/src/ggml-sycl/ggml-sycl.cpp
++++ b/ggml/src/ggml-sycl/ggml-sycl.cpp
+@@ -1239,10 +1239,14 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+             ggml_sycl_set_device(i);
+             const queue_ptr stream = ctx->streams[i];
+ 
+-            SYCL_CHECK(CHECK_TRY_ERROR(
+-                (*stream)
+-                    .memcpy(extra->data_device[i], buf_pagable, original_size)// gpu memory alloc done on using
+-                    .wait()));
++            char * host_buf = (char *) malloc(original_size);
++            memcpy(host_buf, buf_pagable, original_size);
++            SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++            free(host_buf);
++            // SYCL_CHECK(CHECK_TRY_ERROR(
++            //     (*stream)
++            //         .memcpy(extra->data_device[i], buf_pagable, original_size)// gpu memory alloc done on using
++            //         .wait()));
+             // TPTODO low priority: make this buffer
+             free(buf_pagable);
+         }
+@@ -1432,9 +1436,11 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+ 
+            ggml_sycl_set_device(i);
+            const queue_ptr stream = ctx->streams[i];
+-           SYCL_CHECK(CHECK_TRY_ERROR(
+-               (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
+-           // TPTODO low priority: make this buffer
++           char * host_buf = (char *) malloc(original_size);
++           memcpy(host_buf, buf_pagable, original_size);
++           SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++           free(host_buf);
++//           SYCL_CHECK(CHECK_TRY_ERROR( (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
+            free(buf_pagable);
+         }
+         break;
+@@ -1449,8 +1455,13 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+ 
+             ggml_sycl_set_device(i);
+             const queue_ptr stream = ctx->streams[i];
++            char * host_buf = (char *) malloc(original_size);
++            memcpy(host_buf, (const char *)data, original_size);
+             SYCL_CHECK(CHECK_TRY_ERROR(
+-                (*stream).memcpy(extra->data_device[i], (const char *)data, original_size).wait()));
++                (*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++            free(host_buf);
++//            SYCL_CHECK(CHECK_TRY_ERROR(
++//                (*stream).memcpy(extra->data_device[i], (const char *)data, original_size).wait()));
+         }
+         break;
+     default:
+@@ -2061,34 +2072,10 @@ std::unique_ptr<ggml_sycl_pool> ggml_backend_sycl_context::new_pool_for_device(q
+ 
+ static void dev2dev_memcpy(sycl::queue &q_dst, sycl::queue &q_src, void *ptr_dst,
+                            const void *ptr_src, size_t size) {
+-    // each worker-item copies 32-bit width element
+-    size = size / 4;
+-    static ggml_sycl_pool_host *host_align_pool = new ggml_sycl_pool_host(&q_src, 0);
+-    ggml_sycl_pool_alloc<uint32_t> host_pinned_pool_alloc(*host_align_pool);
+-    host_pinned_pool_alloc.alloc(size);
+-    uint32_t * host_buf = (uint32_t *) host_pinned_pool_alloc.get();
+-
+-    constexpr int  block_size = 128;
+-    sycl::range<1> block_dims(block_size);
+-    sycl::range<1> block_nums((size + block_size - 1) / block_size);
+-
+-    uint32_t * dst_32w = (uint32_t *) ptr_dst;
+-    uint32_t * src_32w = (uint32_t *) ptr_src;
+-
+-    CHECK_TRY_ERROR(q_src.parallel_for(sycl::nd_range<1>(block_nums * block_dims, block_dims),
+-        [=](sycl::nd_item<1> id){
+-            size_t gid = id.get_global_id();
+-            host_buf[gid] = src_32w[gid];
+-            // dst_d[gid] = host_buf[gid];
+-        }
+-    ).wait(););
+-    CHECK_TRY_ERROR(q_dst.parallel_for(sycl::nd_range<1>(block_nums * block_dims, block_dims),
+-        [=](sycl::nd_item<1> id){
+-            size_t gid = id.get_global_id();
+-            // host_buf[gid] = src_d[gid];
+-            dst_32w[gid] = host_buf[gid];
+-        }
+-    ).wait(););
++    char *host_buf = (char *)malloc(size);
++    q_src.memcpy(host_buf, (const char *)ptr_src, size).wait();
++    q_dst.memcpy((char *)ptr_dst, host_buf, size).wait();
++    free(host_buf);
+ }
+ 
+ // TBD pool with virtual memory management
