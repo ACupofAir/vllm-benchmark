@@ -1,11 +1,11 @@
 /*
  * source /opt/intel/oneapi/2025.0/oneapi-vars.sh
  *
- * dpcpp dg2_allreduce.cpp -o dg2_allreduce.o -DXE_PLUS
+ * dpcpp dg2_cpy.cpp -o dg2_cpy.o -DXE_PLUS
  *
  * export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
  * export ONEAPI_DEVICE_SELECTOR="level_zero:0;level_zero:1"
- * 
+ *
  * ./dg2_allreduce.o
  */
 #include <sycl/ext/intel/esimd.hpp>
@@ -63,32 +63,31 @@ using message_t = sycl::vec<uint32_t, 4>;
 #define SG_SZ (16)                /* Arc770: Subgroup Sizes Supported: 8;16;32, while 8 threads per EU */
 #define LS_SZ (sizeof(message_t)) /* load/store byte size per work-item */
 
-#define __LscLoadUnCached(var, addr)   \
+#define __LscLoadUnCached(var, addr) \
     __asm__ __volatile__("lsc_load.ugm.uc.uc   (M1, 16)  %0:d64  flat[%1]:a64" : "=rw"(var) : "rw"(addr) : "memory")
-#define __LscLoadCached(var, addr)   \
+#define __LscLoadCached(var, addr) \
     __asm__ __volatile__("lsc_load.ugm.ca.ca   (M1, 16)  %0:d64  flat[%1]:a64" : "=rw"(var) : "rw"(addr) : "memory")
-#define __LscLoadUnCachedVec(var, addr)   \
+#define __LscLoadUnCachedVec(var, addr) \
     __asm__ __volatile__("lsc_load.ugm.uc.uc   (M1, 16)  %0:d32x4  flat[%1]:a64" : "=rw"(reinterpret_cast<typename message_t::vector_t &>(var)) : "rw"(addr) : "memory")
-#define __LscLoadCachedVec(var, addr)   \
+#define __LscLoadCachedVec(var, addr) \
     __asm__ __volatile__("lsc_load.ugm.ca.ca   (M1, 16)  %0:d32x4  flat[%1]:a64" : "=rw"(reinterpret_cast<typename message_t::vector_t &>(var)) : "rw"(addr) : "memory")
-#define __LscLoadL3CachedVec(var, addr)   \
+#define __LscLoadL3CachedVec(var, addr) \
     __asm__ __volatile__("lsc_load.ugm.uc.ca   (M1, 16)  %0:d32x4  flat[%1]:a64" : "=rw"(reinterpret_cast<typename message_t::vector_t &>(var)) : "rw"(addr) : "memory")
 
-#define __LscStoreUnCached(addr, var)  \
+#define __LscStoreUnCached(addr, var) \
     __asm__ __volatile__("lsc_store.ugm.uc.uc  (M1, 16)  flat[%0]:a64  %1:d64" : : "rw"(addr), "rw"(var) : "memory")
-#define __LscStoreCached(addr, var)  \
+#define __LscStoreCached(addr, var) \
     __asm__ __volatile__("lsc_store.ugm.ca.ca  (M1, 16)  flat[%0]:a64  %1:d64" : : "rw"(addr), "rw"(var) : "memory")
-#define __LscStoreUnCachedVec(addr, var)  \
+#define __LscStoreUnCachedVec(addr, var) \
     __asm__ __volatile__("lsc_store.ugm.uc.uc  (M1, 16)  flat[%0]:a64  %1:d32x4" : : "rw"(addr), "rw"(reinterpret_cast<typename message_t::vector_t &>(var)) : "memory")
-#define __LscStoreCachedVec(addr, var)  \
+#define __LscStoreCachedVec(addr, var) \
     __asm__ __volatile__("lsc_store.ugm.ca.ca  (M1, 16)  flat[%0]:a64  %1:d32x4" : : "rw"(addr), "rw"(reinterpret_cast<typename message_t::vector_t &>(var)) : "memory")
 
-#define LscLoadCached     __LscLoadCachedVec
-#define LscLoadUnCached   __LscLoadUnCachedVec
-#define LscLoadL3Cached   __LscLoadL3CachedVec
-#define LscStoreCached    __LscStoreCachedVec
-#define LscStoreUnCached  __LscStoreUnCachedVec
-
+#define LscLoadCached __LscLoadCachedVec
+#define LscLoadUnCached __LscLoadUnCachedVec
+#define LscLoadL3Cached __LscLoadL3CachedVec
+#define LscStoreCached __LscStoreCachedVec
+#define LscStoreUnCached __LscStoreUnCachedVec
 
 // 2 Cards
 #define LL256_BUF_SIZE (32 * 1024 * 1024)
@@ -158,17 +157,18 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
     size_t sz = sizeof(message_t);
     auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
 
-    do {
+    do
+    {
 #if defined(XE_PLUS)
-       LscLoadL3Cached(data, src + lid * sz);
+        LscLoadL3Cached(data, src + lid * sz);
 #else
         LscLoadUnCached(data, src + lid * sz);
 #endif
 
-    } while (sycl::any_of_group(sg, ((lid ==  3) && (data[3] != pattern)) ||
-                                    ((lid ==  7) && (data[3] != pattern)) ||
-                                    ((lid == 11) && (data[3] != pattern)) ||
-                                    ((lid == 15) && (data[3] != pattern))));
+    } while (sycl::any_of_group(sg, ((lid == 3) && (data[3] != pattern)) ||
+                                        ((lid == 7) && (data[3] != pattern)) ||
+                                        ((lid == 11) && (data[3] != pattern)) ||
+                                        ((lid == 15) && (data[3] != pattern))));
 }
 // Make some explain on simd instructions:
 // "mov (M1, 1) %0(1, 15)<1> %0(3, 7)<0;1,0>\n"
@@ -178,11 +178,11 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
 // (3, 7) means the 3rd 32bit element of the 7th vec4-32bit register
 // (1, 15) means the 1st 32bit element of the 15th vec4-32bit register
 //
-// line 0: 0 1 2 3 4 5 6 7 8 9 a b c d e a7710000 
-// line 1: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e a7710000 
-// line 2: 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e a7710000 
-// line 3: 30 31 32 33 34 35 36 37 38 39 3a 3b f 1f 2f a7710000 
-// 
+// line 0: 0 1 2 3 4 5 6 7 8 9 a b c d e a7710000
+// line 1: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e a7710000
+// line 2: 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e a7710000
+// line 3: 30 31 32 33 34 35 36 37 38 39 3a 3b f 1f 2f a7710000
+//
 // so this means mov '0f' to the position showed in line 3
 
 // Also we can tell the difference of register between BMG and ARC
@@ -198,14 +198,14 @@ static inline void shuffle_data(message_t &data)
                          "mov (M1, 1) %0(1, 15)<1> %0(3, 7)<0;1,0>\n"
                          "mov (M1, 1) %0(2, 15)<1> %0(3, 11)<0;1,0>\n"
                          : "+rw"(reinterpret_cast<typename message_t::vector_t &>(data))
-                         : );
+                         :);
 #else
 
     __asm__ __volatile__("mov (M1, 1) %0(1, 7)<1> %0(6, 3)<0;1,0>\n"
                          "mov (M1, 1) %0(3, 7)<1> %0(6, 7)<0;1,0>\n"
                          "mov (M1, 1) %0(5, 7)<1> %0(7, 3)<0;1,0>\n"
                          : "+rw"(reinterpret_cast<typename message_t::vector_t &>(data))
-                         : );
+                         :);
 #endif
 }
 
@@ -235,13 +235,13 @@ static inline void restore_data(message_t &data)
                          "mov (M1, 1) %0(3, 7)<1> %0(1, 15)<0;1,0>\n"
                          "mov (M1, 1) %0(3, 11)<1> %0(2, 15)<0;1,0>\n"
                          : "+rw"(reinterpret_cast<typename message_t::vector_t &>(data))
-                         : );
+                         :);
 #else
     __asm__ __volatile__("mov (M1, 1) %0(6, 3)<1> %0(1, 7)<0;1,0>\n"
                          "mov (M1, 1) %0(6, 7)<1> %0(3, 7)<0;1,0>\n"
                          "mov (M1, 1) %0(7, 3)<1> %0(5, 7)<0;1,0>\n"
                          : "+rw"(reinterpret_cast<typename message_t::vector_t &>(data))
-                         : );
+                         :);
 #endif
 }
 #endif
@@ -307,9 +307,9 @@ static inline void recv_reduce_copy_send(char *dst, char *next, char *src, int l
 }
 
 static inline void recv_copy_send(char *dst, char *next, char *src, int lid, int req_workitems,
-                                  const ggml_type& dtype, int rank, pattern_t pattern,size_t left_size)
+                                  const ggml_type &dtype, int rank, pattern_t pattern, size_t left_size)
 {
-    #if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
+#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
     message_t data;
     int sz = sizeof(data);
 
@@ -320,13 +320,13 @@ static inline void recv_copy_send(char *dst, char *next, char *src, int lid, int
 
     if ((lid < req_workitems) && (lid * sz < left_size))
         LscStoreUnCached(dst + lid * sz, data);
-    #endif
+#endif
 }
 
 static inline void recv(char *dst, char *src, int lid, int req_workitems,
-                        const ggml_type& dtype, int rank, pattern_t pattern,size_t left_size)
+                        const ggml_type &dtype, int rank, pattern_t pattern, size_t left_size)
 {
-    #if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
+#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
     message_t data;
     int sz = sizeof(data);
 
@@ -337,13 +337,12 @@ static inline void recv(char *dst, char *src, int lid, int req_workitems,
 
     if ((lid < req_workitems) && (lid * sz < left_size))
         LscStoreUnCached(dst + lid * sz, data);
-    #endif
+#endif
 }
-
 
 // This function is used to copy data from src to dst using cpu memory as intermediate buffer
 void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world_rank, const int world_size,
-                         sycl::queue &q, ggml_type dtype)
+                       sycl::queue &q, ggml_type dtype)
 {
     // std::cout << "enter " << __func__ << ", rank: " << world_rank <<  ", count: " << count << std::endl;
 
@@ -385,7 +384,8 @@ void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world
     /* To avoid pattern not changed when "iters" is 1 */
     pattern_t pattern_prefix = (pattern_counter + 1) << 16;
 
-    q.submit([&](auto& h) {
+    q.submit([&](auto &h)
+             {
         using namespace sycl::ext::intel::experimental::esimd;
 
         int local_world_rank = world_rank;
@@ -495,8 +495,7 @@ void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world
                     }
                 }
             }
-        });
-    });
+        }); });
 }
 
 void print_host_buffer(void *org_host_buf, int idx, int N)
@@ -531,15 +530,6 @@ int main()
     std::transform(Devs.begin(), Devs.end(), std::back_inserter(Queues),
                    [](const sycl::device &D)
                    { return sycl::queue{D}; });
-    ////////////////////////////////////////////////////////////////////////
-
-    // if (!Devs[0].ext_oneapi_can_access_peer(
-    //         Devs[1], sycl::ext::oneapi::peer_access::access_supported))
-    // {
-    //     std::cout << "P2P access is not supported by devices, exiting."
-    //               << std::endl;
-    //     return 0;
-    // }
 
     const int N = 128;
     const bool isp2p = false;
@@ -551,20 +541,14 @@ int main()
     int *dev0_ptr = sycl::malloc_device<int32_t>(N, Queues[0]);
     int *dev1_ptr = sycl::malloc_device<int32_t>(N, Queues[1]);
 
-    Queues[0].memcpy(dev0_ptr, &input[0], N * sizeof(int32_t));//dev1_ptr should be random
-
-    printf("Before cpy:");
-    Queues[0].memcpy(host_bufs[0], dev0_ptr, N * sizeof(int32_t)).wait();
-    Queues[1].memcpy(host_bufs[1], dev1_ptr, N * sizeof(int32_t)).wait();
-
-    for (int i = 0; i < 2; i++)
-    {
-        print_host_buffer(host_bufs[i], i, N);
-    }
-
+    Queues[0].memcpy(dev0_ptr, &input[0], N * sizeof(int32_t)); // dev1_ptr should be all zero
 
     dg2_init(Queues[0], 0, isp2p);
     dg2_init(Queues[1], 1, isp2p);
+
+    printf("Before cpy:\n");
+    Queues[0].memcpy(host_bufs[0], dev0_ptr, N * sizeof(int32_t)).wait();
+    Queues[1].memcpy(host_bufs[1], dev1_ptr, N * sizeof(int32_t)).wait();
 
     for (int i = 0; i < 2; i++)
     {
