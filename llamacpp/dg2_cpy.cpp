@@ -154,7 +154,6 @@ static inline message_t sum(message_t dst, message_t src, const ggml_type &dtype
 
 static inline void sync_data(char *src, message_t &data, int lid, pattern_t pattern)
 {
-    sycl::ext::oneapi::experimental::printf("sync_data: lid=%d, data[3]=0x%x, pattern=0x%x\n", lid, data[3], pattern);
     size_t sz = sizeof(message_t);
     auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
 
@@ -514,6 +513,38 @@ void print_host_buffer(void *org_host_buf, int idx, int N)
         printf("\n");
     }
 }
+// ...existing code...
+
+void card0_to_card1_copy(sycl::queue &q0, sycl::queue &q1, int *dev0_ptr, int *dev1_ptr, int N) {
+    // 卡0：send 到 host_bufs[1]
+    q0.submit([&](auto &h) {
+        h.single_task([=] {
+            int lid = 0;
+            int req_workitems = N / (sizeof(message_t) / sizeof(int32_t));
+            ggml_type dtype = GGML_TYPE_I32;
+            pattern_t pattern = 0;
+            size_t left_size = N * sizeof(int32_t);
+
+            send((char *)host_bufs[1], (char *)dev0_ptr, lid, req_workitems, dtype, 0, pattern, left_size);
+        });
+    }).wait();
+
+    // 卡1：recv 到 dev1_ptr
+    q1.submit([&](auto &h) {
+        h.single_task([=] {
+            int lid = 0;
+            int req_workitems = N / (sizeof(message_t) / sizeof(int32_t));
+            ggml_type dtype = GGML_TYPE_I32;
+            pattern_t pattern = 0;
+            size_t left_size = N * sizeof(int32_t);
+
+            recv((char *)dev1_ptr, (char *)host_bufs[1], lid, req_workitems, dtype, 1, pattern, left_size);
+        });
+    }).wait();
+}
+
+// ...existing code...
+
 
 int main()
 {
@@ -556,8 +587,8 @@ int main()
         print_host_buffer(host_bufs[i], i, N);
     }
 
-    dg2_bmg_ll256_cpy(dev0_ptr, dev0_ptr, N, 0, 2, Queues[0], GGML_TYPE_I32);
-    dg2_bmg_ll256_cpy(dev1_ptr, dev1_ptr, N, 1, 2, Queues[1], GGML_TYPE_I32);
+    card0_to_card1_copy(Queues[0], Queues[1], dev0_ptr, dev1_ptr, N);
+
 
     Queues[0].wait();
     Queues[1].wait();
