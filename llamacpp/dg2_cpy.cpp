@@ -491,7 +491,7 @@ void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world
                         char *src = local_host_buf;
 
                         size_t left_size = count * dt_sz - offset;
-                        recv(recv_buf + offset, src + offset_with_pattern, sg_lid, req_workitems, dtype, local_world_rank, pattern, left_size);
+                        recv(recv_buf + offset, next + offset_with_pattern, sg_lid, req_workitems, dtype, local_world_rank, pattern, left_size);
                     }
                 }
             }
@@ -513,38 +513,167 @@ void print_host_buffer(void *org_host_buf, int idx, int N)
         printf("\n");
     }
 }
+
 // ...existing code...
 
-void card0_to_card1_copy(sycl::queue &q0, sycl::queue &q1, int *dev0_ptr, int *dev1_ptr, int N) {
-    // 卡0：send 到 host_bufs[1]
-    q0.submit([&](auto &h) {
-        h.single_task([=] {
-            int lid = 0;
-            int req_workitems = N / (sizeof(message_t) / sizeof(int32_t));
-            ggml_type dtype = GGML_TYPE_I32;
-            pattern_t pattern = 0;
-            size_t left_size = N * sizeof(int32_t);
+void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world_rank, const int world_size,
+                         sycl::queue &q, ggml_type dtype)
+{
+    // std::cout << "enter " << __func__ << ", rank: " << world_rank <<  ", count: " << count << std::endl;
 
-            send((char *)host_bufs[1], (char *)dev0_ptr, lid, req_workitems, dtype, 0, pattern, left_size);
+    size_t dt_sz;
+    switch (dtype)
+    {
+    case GGML_TYPE_F16:
+        dt_sz = sizeof(sycl::half);
+        break;
+    case GGML_TYPE_F32:
+        dt_sz = sizeof(float);
+        break;
+    case GGML_TYPE_I32:
+        dt_sz = sizeof(int32_t);
+        break;
+    default:
+        assert(false and "Unsupported allreduce data type.");
+    }
+    char *recv_buf = static_cast<char *>(dst);
+    char *send_buf = static_cast<char *>(const_cast<void *>(src));
+
+    /*
+     * Intel(R) Arc(TM) A770 Graphics:
+     *   Number Of Slices:                       1
+     *   Number Of Subslices Per Slice:          32
+     *   Number Of EU Per Subslice:              16
+     *   Number Of Threads Per EU:               8
+     *   Total EU Count:                         512
+     *   Physical EU SIMD Width:                 8
+     */
+
+    /* 64-byte load/store granularity to HBM, Maximum 128-byte payload can be used by EU store */
+    /* Arc770: Subgroup Sizes Supported: 8;16;32, while 8 threads per EU */
+    size_t sg_sz = SG_SZ;
+
+    size_t l_sz = 1 * sg_sz;
+    size_t g_sz = 512 * l_sz;
+
+    /* To avoid pattern not changed when "iters" is 1 */
+    pattern_t pattern_prefix = (pattern_counter + 1) << 16;
+
+    q.submit([&](auto& h) {
+        using namespace sycl::ext::intel::experimental::esimd;
+
+        int local_world_rank = world_rank;
+        int local_world_size = world_size;
+
+        int next_rank = (local_world_rank + 1) % local_world_size;
+        char *local_host_buf = (char *)host_bufs[local_world_rank];
+
+        char *local_peer_bufs[DG2_NUM];
+        for (int i = 0; i < world_size; i++)
+            local_peer_bufs[i] = (char *)peer_bufs[i];
+
+        /*
+         * In a single subgroup:
+         *   a> 1 dedicated work-item to manage a LS_SZ-byte pattern.
+         *   b> other work-items to process data, and each of them handle a LS_SZ-byte data.
+         */
+        auto default_subgroup_capacity = sg_sz * LS_SZ;  /* bytes: data and pattern  processed by 1 subgroup */
+        auto default_workgroup_capacity = l_sz * LS_SZ;  /* bytes: data and patterns processed by 1 workgroup */
+        //auto default_total_capacity = g_sz * LS_SZ;      /* bytes: data and patterns processed by all workgroups in 1 iteration */
+
+        /* In a single workgroup, the available work-items to process data, excluding work-items for patterns */
+        auto workgroup_available_items = l_sz - (l_sz / sg_sz);
+        auto total_available_items = (g_sz / l_sz) * workgroup_available_items;
+
+        auto subgroup_capacity = LS_SZ * (sg_sz - 1);                  /* bytes: data processed by 1 subgroup */
+        auto workgroup_capacity = LS_SZ * workgroup_available_items;   /* bytes: data processed by 1 workgroup */
+        auto total_capacity = (g_sz / l_sz) * workgroup_capacity;      /* bytes: data processed by all workgroups in 1 iteration */
+
+        /* div up */
+        int iters = (count * dt_sz + (local_world_size * total_available_items * LS_SZ - 1)) / (local_world_size * total_available_items * LS_SZ);
+
+        //sycl::ext::oneapi::experimental::printf("------> rank: %d, group num: %ld, loop count: %zu\n", local_world_rank, g_sz / l_sz, iters);
+
+        h.parallel_for(sycl::nd_range<1>(g_sz, l_sz), [=] (sycl::nd_item<1> item) [[sycl::reqd_sub_group_size(SG_SZ)]] {
+            int idx = 0;
+            size_t offset = 0;
+            size_t offset_with_pattern = 0;
+
+            auto group_id = item.get_group_linear_id();
+            auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
+            auto sg_id = sg.get_group_id()[0];
+            auto sg_lid = sg.get_local_id()[0];
+
+            for (int i = 0; i < iters; i++) {
+                pattern_t pattern = pattern_prefix + i;
+
+                auto base = local_world_size * (i        * total_capacity  +
+                                                group_id * workgroup_capacity  +
+                                                sg_id    * subgroup_capacity);
+                auto base_with_pattern = local_world_size * (/* i        * default_total_capacity  + */
+                                                             group_id * default_workgroup_capacity  +
+                                                             sg_id    * default_subgroup_capacity);
+
+                auto finished = i * total_capacity * local_world_size;   /* bytes */
+                auto unreduced = count * dt_sz - finished;               /* bytes */
+
+                auto req_workitems = sg_sz - 1;                /* required work-items exclude 1 work-item for pattern */
+                auto chunk_sz = req_workitems * LS_SZ;         /* LS_SZ bytes per work-item */
+                auto chunk_with_pattern = sg_sz * LS_SZ;       /* aligned to 256B */
+
+                /* items will be assigned to each rank */
+                auto per_rank_items = (unreduced + (local_world_size * LS_SZ - 1)) / (local_world_size * LS_SZ);
+                auto req_workgroups = (per_rank_items + (workgroup_available_items - 1)) / workgroup_available_items;
+                auto req_subgroups = 0;
+
+                if (req_workgroups >= g_sz/l_sz) {
+                    req_workgroups = g_sz/l_sz;
+                } else {
+                    if (group_id == (req_workgroups - 1)) {
+                        req_subgroups = (per_rank_items + (sg_sz - 1)) / (sg_sz - 1);
+
+                        /* (req_subgroups % (l_sz/sg_sz) - 1) equals to the final subgroup id in a workgroup */
+                        /* Note:  req_subgroups % (l_sz/sg_sz) might be 0 */
+                        if (((req_subgroups % (l_sz/sg_sz)) == 0) || (sg_id == (req_subgroups % (l_sz/sg_sz) - 1))) {
+                            if ((per_rank_items % (sg_sz - 1)) != 0) {
+                                /* FIXME: */
+                                req_workitems = per_rank_items % (sg_sz - 1);
+                                chunk_sz = req_workitems * LS_SZ;    /* LS_SZ bytes per work-item */
+                            }
+                        }
+                    }
+                }
+
+                if (group_id < req_workgroups) {
+                    // step 1: push data to next GPU
+                    {
+                        offset = base + local_world_rank * chunk_sz;
+                        offset_with_pattern = base_with_pattern + local_world_rank * chunk_with_pattern;
+
+                        char *next = local_peer_bufs[next_rank];
+
+			size_t left_size = count * dt_sz - offset;
+                        send(next + offset_with_pattern, send_buf + offset, sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
+                    }
+
+                    // step 2: reduce and copy to next GPU
+                    for (int j = 2; j < local_world_size; j++) {
+                        idx = (local_world_rank + local_world_size + 1 - j) % local_world_size;
+                        offset = base + idx * chunk_sz;
+                        offset_with_pattern = base_with_pattern + idx * chunk_with_pattern;
+
+                        char *src = local_host_buf;
+                        char *next = local_peer_bufs[next_rank];
+
+			size_t left_size = count * dt_sz - offset;
+                        recv_reduce_send(recv_buf + offset, next + offset_with_pattern, src + offset_with_pattern,
+                                         sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
+                    }
+                }
+            }
         });
-    }).wait();
-
-    // 卡1：recv 到 dev1_ptr
-    q1.submit([&](auto &h) {
-        h.single_task([=] {
-            int lid = 0;
-            int req_workitems = N / (sizeof(message_t) / sizeof(int32_t));
-            ggml_type dtype = GGML_TYPE_I32;
-            pattern_t pattern = 0;
-            size_t left_size = N * sizeof(int32_t);
-
-            recv((char *)dev1_ptr, (char *)host_bufs[1], lid, req_workitems, dtype, 1, pattern, left_size);
-        });
-    }).wait();
+    });
 }
-
-// ...existing code...
-
 
 int main()
 {
@@ -587,8 +716,8 @@ int main()
         print_host_buffer(host_bufs[i], i, N);
     }
 
-    card0_to_card1_copy(Queues[0], Queues[1], dev0_ptr, dev1_ptr, N);
-
+    dg2_bmg_ll256_cpy(dev0_ptr, dev0_ptr, N, 0, 2, Queues[0], GGML_TYPE_I32);
+    dg2_bmg_ll256_cpy(dev1_ptr, dev1_ptr, N, 1, 2, Queues[1], GGML_TYPE_I32);
 
     Queues[0].wait();
     Queues[1].wait();
