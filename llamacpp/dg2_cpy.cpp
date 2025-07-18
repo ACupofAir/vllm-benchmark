@@ -154,6 +154,7 @@ static inline message_t sum(message_t dst, message_t src, const ggml_type &dtype
 
 static inline void sync_data(char *src, message_t &data, int lid, pattern_t pattern)
 {
+    sycl::ext::oneapi::experimental::printf("sync_data: lid=%d, data[3]=0x%x, pattern=0x%x\n", lid, data[3], pattern);
     size_t sz = sizeof(message_t);
     auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
 
