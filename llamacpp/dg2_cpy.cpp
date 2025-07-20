@@ -246,8 +246,8 @@ static inline void restore_data(message_t &data)
 }
 #endif
 
-static inline void send(char *next, char *src, int lid, int req_workitems, const ggml_type &dtype, int rank,
-                        pattern_t pattern, size_t left_size)
+static inline void send(char *dst, char *src, int lid, int req_workitems, const ggml_type &dtype, pattern_t pattern,
+                        size_t left_size)
 {
 #if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
     message_t data;
@@ -259,78 +259,17 @@ static inline void send(char *next, char *src, int lid, int req_workitems, const
     shuffle_data(data);
     insert_pattern(data, pattern);
 
-    LscStoreUnCached(next + lid * sz, data);
+    LscStoreUnCached(dst + lid * sz, data);
 #endif
 }
 
-static inline void recv_reduce_send(char *dst, char *next, char *src, int lid, int req_workitems,
-                                    const ggml_type &dtype, int rank, pattern_t pattern, size_t left_size)
-{
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
-    message_t data;
-    int sz = sizeof(data);
-    message_t *dst_buf = (message_t *)dst;
-
-    sync_data(src, data, lid, pattern);
-    restore_data(data);
-
-    if ((lid < req_workitems) && (lid * sz < left_size))
-        data = sum(dst_buf[lid], data, dtype);
-
-    shuffle_data(data);
-    insert_pattern(data, pattern);
-    LscStoreUnCached(next + lid * sz, data);
-#endif
-}
-
-static inline void recv_reduce_copy_send(char *dst, char *next, char *src, int lid, int req_workitems,
-                                         const ggml_type &dtype, int rank, pattern_t pattern, size_t left_size)
-{
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
-    message_t data;
-    int sz = sizeof(data);
-    message_t *dst_buf = (message_t *)dst;
-
-    sync_data(src, data, lid, pattern);
-    restore_data(data);
-
-    if ((lid < req_workitems) && (lid * sz < left_size))
-        data = sum(dst_buf[lid], data, dtype);
-
-    if ((lid < req_workitems) && (lid * sz < left_size))
-        LscStoreUnCached(dst + lid * sz, data);
-
-    shuffle_data(data);
-    insert_pattern(data, pattern);
-    LscStoreUnCached(next + lid * sz, data);
-#endif
-}
-
-static inline void recv_copy_send(char *dst, char *next, char *src, int lid, int req_workitems,
-                                  const ggml_type &dtype, int rank, pattern_t pattern, size_t left_size)
+static inline void recv(char *dst, char *src, int lid, int req_workitems, const ggml_type &dtype, pattern_t pattern,
+                        size_t left_size)
 {
 #if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
     message_t data;
     int sz = sizeof(data);
 
-    sync_data(src, data, lid, pattern);
-    LscStoreUnCached(next + lid * sz, data);
-
-    restore_data(data);
-
-    if ((lid < req_workitems) && (lid * sz < left_size))
-        LscStoreUnCached(dst + lid * sz, data);
-#endif
-}
-
-static inline void recv(char *dst, char *src, int lid, int req_workitems,
-                        const ggml_type &dtype, int rank, pattern_t pattern, size_t left_size)
-{
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
-    message_t data;
-    int sz = sizeof(data);
-
-    /* copy reduced data from peer */
     sync_data(src, data, lid, pattern);
 
     restore_data(data);
@@ -341,11 +280,8 @@ static inline void recv(char *dst, char *src, int lid, int req_workitems,
 }
 
 // This function is used to copy data from src to dst using cpu memory as intermediate buffer
-void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world_rank, const int world_size,
-                       sycl::queue &q, ggml_type dtype)
+void dg2_bmg_ll256_cpy(void *dst, const void *src, size_t count, sycl::queue &q_dst, sycl::queue &q_src, ggml_type dtype)
 {
-    // std::cout << "enter " << __func__ << ", rank: " << world_rank <<  ", count: " << count << std::endl;
-
     size_t dt_sz;
     switch (dtype)
     {
@@ -364,138 +300,53 @@ void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world
     char *recv_buf = static_cast<char *>(dst);
     char *send_buf = static_cast<char *>(const_cast<void *>(src));
 
-    /*
-     * Intel(R) Arc(TM) A770 Graphics:
-     *   Number Of Slices:                       1
-     *   Number Of Subslices Per Slice:          32
-     *   Number Of EU Per Subslice:              16
-     *   Number Of Threads Per EU:               8
-     *   Total EU Count:                         512
-     *   Physical EU SIMD Width:                 8
-     */
+    size_t sg_sz = SG_SZ;     // subgroup size:         16
+    size_t l_sz = 1 * sg_sz;  // local workgroup size:  16
+    size_t g_sz = 512 * l_sz; // global workgroup size: 512*16
 
-    /* 64-byte load/store granularity to HBM, Maximum 128-byte payload can be used by EU store */
-    /* Arc770: Subgroup Sizes Supported: 8;16;32, while 8 threads per EU */
-    size_t sg_sz = SG_SZ;
-
-    size_t l_sz = 1 * sg_sz;
-    size_t g_sz = 512 * l_sz;
-
-    /* To avoid pattern not changed when "iters" is 1 */
     pattern_t pattern_prefix = (pattern_counter + 1) << 16;
+    size_t total_bytes = count * dt_sz;
+    size_t chunk_bytes = 4 * 1024 * 1024;
+    size_t num_chunks = (total_bytes + chunk_bytes - 1) / chunk_bytes;
 
-    q.submit([&](auto &h)
-             {
-        using namespace sycl::ext::intel::experimental::esimd;
+    pattern_counter++;
+    pattern_t pattern = pattern_prefix | (pattern_counter & 0xFFFF);
 
-        int local_world_rank = world_rank;
-        int local_world_size = world_size;
+    for (size_t chunk = 0; chunk < num_chunks; ++chunk) {
+        size_t offset = chunk * chunk_bytes;
+        size_t left_bytes = std::min(chunk_bytes, total_bytes - offset);
+        size_t num_workitems = (left_bytes + LS_SZ - 1) / LS_SZ;
+        size_t num_groups = (num_workitems + l_sz - 1) / l_sz;
 
-        int next_rank = (local_world_rank + 1) % local_world_size;
-        char *local_host_buf = (char *)host_bufs[local_world_rank];
+        // Send: src -> host_bufs
+        q_src.submit([=](sycl::handler &h) {
+            h.parallel_for(
+                sycl::nd_range<1>(num_groups * l_sz, l_sz),
+                [=](sycl::nd_item<1> item) [[sycl::reqd_sub_group_size(SG_SZ)]] {
+                    int lid = item.get_local_id(0);
+                    send(static_cast<char *>(host_bufs[1]) + offset, send_buf + offset, 
+                         lid, num_workitems, dtype, pattern, left_bytes);
+                });
+        });
 
-        char *local_peer_bufs[DG2_NUM];
-        for (int i = 0; i < world_size; i++)
-            local_peer_bufs[i] = (char *)peer_bufs[i];
+        // Recv: host_bufs -> dst
+        q_dst.submit([=](sycl::handler &h) {
+            h.parallel_for(
+                sycl::nd_range<1>(num_groups * l_sz, l_sz),
+                [=](sycl::nd_item<1> item) [[sycl::reqd_sub_group_size(SG_SZ)]] {
+                    int lid = item.get_local_id(0);
+                    recv(recv_buf + offset, static_cast<char *>(host_bufs[1]) + offset,
+                         lid, num_workitems, dtype, pattern, left_bytes);
+                });
+        });
+    }
+}
 
-        /*
-         * In a single subgroup:
-         *   a> 1 dedicated work-item to manage a LS_SZ-byte pattern.
-         *   b> other work-items to process data, and each of them handle a LS_SZ-byte data.
-         */
-        auto default_subgroup_capacity = sg_sz * LS_SZ;  /* bytes: data and pattern  processed by 1 subgroup */
-        auto default_workgroup_capacity = l_sz * LS_SZ;  /* bytes: data and patterns processed by 1 workgroup */
-        //auto default_total_capacity = g_sz * LS_SZ;      /* bytes: data and patterns processed by all workgroups in 1 iteration */
-
-        /* In a single workgroup, the available work-items to process data, excluding work-items for patterns */
-        auto workgroup_available_items = l_sz - (l_sz / sg_sz);
-        auto total_available_items = (g_sz / l_sz) * workgroup_available_items;
-
-        auto subgroup_capacity = LS_SZ * (sg_sz - 1);                  /* bytes: data processed by 1 subgroup */
-        auto workgroup_capacity = LS_SZ * workgroup_available_items;   /* bytes: data processed by 1 workgroup */
-        auto total_capacity = (g_sz / l_sz) * workgroup_capacity;      /* bytes: data processed by all workgroups in 1 iteration */
-
-        /* div up */
-        int iters = (count * dt_sz + (local_world_size * total_available_items * LS_SZ - 1)) / (local_world_size * total_available_items * LS_SZ);
-
-        //sycl::ext::oneapi::experimental::printf("------> rank: %d, group num: %ld, loop count: %zu\n", local_world_rank, g_sz / l_sz, iters);
-
-        h.parallel_for(sycl::nd_range<1>(g_sz, l_sz), [=] (sycl::nd_item<1> item) [[sycl::reqd_sub_group_size(SG_SZ)]] {
-            int idx = 0;
-            size_t offset = 0;
-            size_t offset_with_pattern = 0;
-
-            auto group_id = item.get_group_linear_id();
-            auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
-            auto sg_id = sg.get_group_id()[0];
-            auto sg_lid = sg.get_local_id()[0];
-
-            for (int i = 0; i < iters; i++) {
-                pattern_t pattern = pattern_prefix + i;
-
-                auto base = local_world_size * (i        * total_capacity  +
-                                                group_id * workgroup_capacity  +
-                                                sg_id    * subgroup_capacity);
-                auto base_with_pattern = local_world_size * (/* i        * default_total_capacity  + */
-                                                             group_id * default_workgroup_capacity  +
-                                                             sg_id    * default_subgroup_capacity);
-
-                auto finished = i * total_capacity * local_world_size;   /* bytes */
-                auto uncpyed = count * dt_sz - finished;               /* bytes */
-
-                auto req_workitems = sg_sz - 1;                /* required work-items exclude 1 work-item for pattern */
-                auto chunk_sz = req_workitems * LS_SZ;         /* LS_SZ bytes per work-item */
-                auto chunk_with_pattern = sg_sz * LS_SZ;       /* aligned to 256B */
-
-                /* items will be assigned to each rank */
-                auto per_rank_items = (uncpyed + (local_world_size * LS_SZ - 1)) / (local_world_size * LS_SZ);
-                auto req_workgroups = (per_rank_items + (workgroup_available_items - 1)) / workgroup_available_items;
-                auto req_subgroups = 0;
-
-                if (req_workgroups >= g_sz/l_sz) {
-                    req_workgroups = g_sz/l_sz;
-                } else {
-                    if (group_id == (req_workgroups - 1)) {
-                        req_subgroups = (per_rank_items + (sg_sz - 1)) / (sg_sz - 1);
-
-                        /* (req_subgroups % (l_sz/sg_sz) - 1) equals to the final subgroup id in a workgroup */
-                        /* Note:  req_subgroups % (l_sz/sg_sz) might be 0 */
-                        if (((req_subgroups % (l_sz/sg_sz)) == 0) || (sg_id == (req_subgroups % (l_sz/sg_sz) - 1))) {
-                            if ((per_rank_items % (sg_sz - 1)) != 0) {
-                                /* FIXME: */
-                                req_workitems = per_rank_items % (sg_sz - 1);
-                                chunk_sz = req_workitems * LS_SZ;    /* LS_SZ bytes per work-item */
-                            }
-                        }
-                    }
-                }
-
-                if (group_id < req_workgroups) {
-                    // step 1: push data to next GPU
-                    {
-                        offset = base + local_world_rank * chunk_sz;
-                        offset_with_pattern = base_with_pattern + local_world_rank * chunk_with_pattern;
-
-                        char *next = local_peer_bufs[next_rank];
-
-                        size_t left_size = count * dt_sz - offset;
-                        send(next + offset_with_pattern, send_buf + offset, sg_lid, req_workitems, dtype, local_world_rank, pattern, left_size);
-                    }
-
-                    // step 2: copy from buffer to dest
-                    {
-                        idx = (local_world_rank + 2) % local_world_size;
-                        offset = base + idx * chunk_sz;
-                        offset_with_pattern = GATHER_BUF_OFFSET + base_with_pattern + idx * chunk_with_pattern;
-
-                        char *src = local_host_buf;
-
-                        size_t left_size = count * dt_sz - offset;
-                        recv(recv_buf + offset, next + offset_with_pattern, sg_lid, req_workitems, dtype, local_world_rank, pattern, left_size);
-                    }
-                }
-            }
-        }); });
+void usm_memcpy(void *dst, const void *src, size_t count, sycl::queue &q_dst, sycl::queue &q_src, ggml_type dtype)
+{
+    void *usm_buf = sycl::malloc_host(count * sizeof(int32_t), q_dst.get_context());
+    q_src.memcpy(usm_buf, src, count * sizeof(int32_t)).wait();
+    q_dst.memcpy(dst, usm_buf, count * sizeof(int32_t)).wait();
 }
 
 void print_host_buffer(void *org_host_buf, int idx, int N)
@@ -512,167 +363,6 @@ void print_host_buffer(void *org_host_buf, int idx, int N)
         }
         printf("\n");
     }
-}
-
-// ...existing code...
-
-void dg2_bmg_ll256_cpy(const void *src, void *dst, size_t count, const int world_rank, const int world_size,
-                         sycl::queue &q, ggml_type dtype)
-{
-    // std::cout << "enter " << __func__ << ", rank: " << world_rank <<  ", count: " << count << std::endl;
-
-    size_t dt_sz;
-    switch (dtype)
-    {
-    case GGML_TYPE_F16:
-        dt_sz = sizeof(sycl::half);
-        break;
-    case GGML_TYPE_F32:
-        dt_sz = sizeof(float);
-        break;
-    case GGML_TYPE_I32:
-        dt_sz = sizeof(int32_t);
-        break;
-    default:
-        assert(false and "Unsupported allreduce data type.");
-    }
-    char *recv_buf = static_cast<char *>(dst);
-    char *send_buf = static_cast<char *>(const_cast<void *>(src));
-
-    /*
-     * Intel(R) Arc(TM) A770 Graphics:
-     *   Number Of Slices:                       1
-     *   Number Of Subslices Per Slice:          32
-     *   Number Of EU Per Subslice:              16
-     *   Number Of Threads Per EU:               8
-     *   Total EU Count:                         512
-     *   Physical EU SIMD Width:                 8
-     */
-
-    /* 64-byte load/store granularity to HBM, Maximum 128-byte payload can be used by EU store */
-    /* Arc770: Subgroup Sizes Supported: 8;16;32, while 8 threads per EU */
-    size_t sg_sz = SG_SZ;
-
-    size_t l_sz = 1 * sg_sz;
-    size_t g_sz = 512 * l_sz;
-
-    /* To avoid pattern not changed when "iters" is 1 */
-    pattern_t pattern_prefix = (pattern_counter + 1) << 16;
-
-    q.submit([&](auto& h) {
-        using namespace sycl::ext::intel::experimental::esimd;
-
-        int local_world_rank = world_rank;
-        int local_world_size = world_size;
-
-        int next_rank = (local_world_rank + 1) % local_world_size;
-        char *local_host_buf = (char *)host_bufs[local_world_rank];
-
-        char *local_peer_bufs[DG2_NUM];
-        for (int i = 0; i < world_size; i++)
-            local_peer_bufs[i] = (char *)peer_bufs[i];
-
-        /*
-         * In a single subgroup:
-         *   a> 1 dedicated work-item to manage a LS_SZ-byte pattern.
-         *   b> other work-items to process data, and each of them handle a LS_SZ-byte data.
-         */
-        auto default_subgroup_capacity = sg_sz * LS_SZ;  /* bytes: data and pattern  processed by 1 subgroup */
-        auto default_workgroup_capacity = l_sz * LS_SZ;  /* bytes: data and patterns processed by 1 workgroup */
-        //auto default_total_capacity = g_sz * LS_SZ;      /* bytes: data and patterns processed by all workgroups in 1 iteration */
-
-        /* In a single workgroup, the available work-items to process data, excluding work-items for patterns */
-        auto workgroup_available_items = l_sz - (l_sz / sg_sz);
-        auto total_available_items = (g_sz / l_sz) * workgroup_available_items;
-
-        auto subgroup_capacity = LS_SZ * (sg_sz - 1);                  /* bytes: data processed by 1 subgroup */
-        auto workgroup_capacity = LS_SZ * workgroup_available_items;   /* bytes: data processed by 1 workgroup */
-        auto total_capacity = (g_sz / l_sz) * workgroup_capacity;      /* bytes: data processed by all workgroups in 1 iteration */
-
-        /* div up */
-        int iters = (count * dt_sz + (local_world_size * total_available_items * LS_SZ - 1)) / (local_world_size * total_available_items * LS_SZ);
-
-        //sycl::ext::oneapi::experimental::printf("------> rank: %d, group num: %ld, loop count: %zu\n", local_world_rank, g_sz / l_sz, iters);
-
-        h.parallel_for(sycl::nd_range<1>(g_sz, l_sz), [=] (sycl::nd_item<1> item) [[sycl::reqd_sub_group_size(SG_SZ)]] {
-            int idx = 0;
-            size_t offset = 0;
-            size_t offset_with_pattern = 0;
-
-            auto group_id = item.get_group_linear_id();
-            auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
-            auto sg_id = sg.get_group_id()[0];
-            auto sg_lid = sg.get_local_id()[0];
-
-            for (int i = 0; i < iters; i++) {
-                pattern_t pattern = pattern_prefix + i;
-
-                auto base = local_world_size * (i        * total_capacity  +
-                                                group_id * workgroup_capacity  +
-                                                sg_id    * subgroup_capacity);
-                auto base_with_pattern = local_world_size * (/* i        * default_total_capacity  + */
-                                                             group_id * default_workgroup_capacity  +
-                                                             sg_id    * default_subgroup_capacity);
-
-                auto finished = i * total_capacity * local_world_size;   /* bytes */
-                auto unreduced = count * dt_sz - finished;               /* bytes */
-
-                auto req_workitems = sg_sz - 1;                /* required work-items exclude 1 work-item for pattern */
-                auto chunk_sz = req_workitems * LS_SZ;         /* LS_SZ bytes per work-item */
-                auto chunk_with_pattern = sg_sz * LS_SZ;       /* aligned to 256B */
-
-                /* items will be assigned to each rank */
-                auto per_rank_items = (unreduced + (local_world_size * LS_SZ - 1)) / (local_world_size * LS_SZ);
-                auto req_workgroups = (per_rank_items + (workgroup_available_items - 1)) / workgroup_available_items;
-                auto req_subgroups = 0;
-
-                if (req_workgroups >= g_sz/l_sz) {
-                    req_workgroups = g_sz/l_sz;
-                } else {
-                    if (group_id == (req_workgroups - 1)) {
-                        req_subgroups = (per_rank_items + (sg_sz - 1)) / (sg_sz - 1);
-
-                        /* (req_subgroups % (l_sz/sg_sz) - 1) equals to the final subgroup id in a workgroup */
-                        /* Note:  req_subgroups % (l_sz/sg_sz) might be 0 */
-                        if (((req_subgroups % (l_sz/sg_sz)) == 0) || (sg_id == (req_subgroups % (l_sz/sg_sz) - 1))) {
-                            if ((per_rank_items % (sg_sz - 1)) != 0) {
-                                /* FIXME: */
-                                req_workitems = per_rank_items % (sg_sz - 1);
-                                chunk_sz = req_workitems * LS_SZ;    /* LS_SZ bytes per work-item */
-                            }
-                        }
-                    }
-                }
-
-                if (group_id < req_workgroups) {
-                    // step 1: push data to next GPU
-                    {
-                        offset = base + local_world_rank * chunk_sz;
-                        offset_with_pattern = base_with_pattern + local_world_rank * chunk_with_pattern;
-
-                        char *next = local_peer_bufs[next_rank];
-
-			size_t left_size = count * dt_sz - offset;
-                        send(next + offset_with_pattern, send_buf + offset, sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
-                    }
-
-                    // step 2: reduce and copy to next GPU
-                    for (int j = 2; j < local_world_size; j++) {
-                        idx = (local_world_rank + local_world_size + 1 - j) % local_world_size;
-                        offset = base + idx * chunk_sz;
-                        offset_with_pattern = base_with_pattern + idx * chunk_with_pattern;
-
-                        char *src = local_host_buf;
-                        char *next = local_peer_bufs[next_rank];
-
-			size_t left_size = count * dt_sz - offset;
-                        recv_reduce_send(recv_buf + offset, next + offset_with_pattern, src + offset_with_pattern,
-                                         sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
-                    }
-                }
-            }
-        });
-    });
 }
 
 int main()
@@ -716,11 +406,15 @@ int main()
         print_host_buffer(host_bufs[i], i, N);
     }
 
-    dg2_bmg_ll256_cpy(dev0_ptr, dev0_ptr, N, 0, 2, Queues[0], GGML_TYPE_I32);
-    dg2_bmg_ll256_cpy(dev1_ptr, dev1_ptr, N, 1, 2, Queues[1], GGML_TYPE_I32);
-
+    auto start = std::chrono::high_resolution_clock::now();
+    dg2_bmg_ll256_cpy(dev1_ptr, dev0_ptr, N, Queues[1], Queues[0], GGML_TYPE_I32);
     Queues[0].wait();
     Queues[1].wait();
+    
+    // usm_memcpy(dev1_ptr, dev0_ptr, N, Queues[0], Queues[1], GGML_TYPE_I32);
+    auto end = std::chrono::high_resolution_clock::now();
+    double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
+    printf("Copy time: %.3f ms\n", elapsed_ms);
 
     for (int i = 0; i < 2; i++)
     {
