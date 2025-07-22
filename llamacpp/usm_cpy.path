@@ -1,0 +1,47 @@
+diff --git a/ggml/src/ggml-sycl/common.cpp b/ggml/src/ggml-sycl/common.cpp
+index d2ccd488..2a0beb69 100644
+--- a/ggml/src/ggml-sycl/common.cpp
++++ b/ggml/src/ggml-sycl/common.cpp
+@@ -14,6 +14,7 @@
+ 
+ #include "ggml-backend-impl.h"
+ #include "ggml-impl.h"
++#include <sycl/sycl.hpp>
+ 
+ int get_current_device_id() {
+   return dpct::dev_mgr::instance().current_device_id();
+@@ -66,6 +67,14 @@ int64_t downsample_sycl_global_range(int64_t accumulate_block_num, int64_t block
+   return sycl_down_blk_size;
+ }
+ 
++void usm_memcpy(void *dst, const void *src, size_t size, sycl::queue &q_dst, sycl::queue &q_src)
++{
++    void *usm_host = sycl::malloc_host(size, q_src);
++    q_src.memcpy(usm_host, src, size).wait();
++    q_dst.memcpy(dst, usm_host, size).wait();
++    sycl::free(usm_host, q_src);
++}
++
+ // bigdl changes, TODO: refactor & remove
+ void ggml_sycl_op_flatten(ggml_backend_sycl_context & ctx, const ggml_tensor *src0,
+                                  const ggml_tensor *src1, ggml_tensor *dst,
+@@ -110,18 +119,8 @@ void ggml_sycl_op_flatten(ggml_backend_sycl_context & ctx, const ggml_tensor *sr
+         main_stream->wait();
+         for (int i = 1; i < ggml_sycl_info().device_count; i++) {
+           float* dst_ddf_i =  (float *) extra_dst->data_device[i];
+-          // main_stream->memcpy(dst_ddf_i, dst_ddf, ggml_nbytes(dst)).wait(); // Should submit a barrier
+-          void* host_buf = ggml_sycl_host_malloc(ggml_nbytes(dst));
+-          if (host_buf == nullptr) {
+-            GGML_LOG_ERROR("Failed to allocate host buffer for device-to-device copy\n");
+-            std::exit(1);
+-          }
+-          // device 0 -> host
+-          main_stream->memcpy(host_buf, dst_ddf, ggml_nbytes(dst)).wait();
+-          // host -> device i
+           queue_ptr stream_i = ctx.stream(i, 0);
+-          stream_i->memcpy(dst_ddf_i, host_buf, ggml_nbytes(dst)).wait();
+-          ggml_sycl_host_free(host_buf);
++          usm_memcpy(dst_ddf_i, dst_ddf, ggml_nbytes(dst), *stream_i, *main_stream);
+         }
+         return;
+       }
