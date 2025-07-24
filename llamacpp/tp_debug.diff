@@ -1,0 +1,108 @@
+diff --git a/ggml/include/bigdl-opt/ggml-convert.h b/ggml/include/bigdl-opt/ggml-convert.h
+index fe5c00ad..b789a317 100644
+--- a/ggml/include/bigdl-opt/ggml-convert.h
++++ b/ggml/include/bigdl-opt/ggml-convert.h
+@@ -48,6 +48,8 @@ static void convert_ggml_tensor(struct ggml_tensor *cur, void * src){
+     ) {
+         // create new memory for new layout
+         size_t tensor_size = ggml_nbytes(cur);
++        printf("[DEBUG] convert_ggml_tensor tensor name %s, tensor shape %d, %d, %d, %d, tensor size is %d.\n",
++            cur->name, cur->ne[0], cur->ne[1], cur->ne[2], cur->ne[3], tensor_size);
+         if (cur->type == GGML_TYPE_Q3_K) {
+             tensor_size =  ggml_sycl_nbytes(cur);
+         }
+diff --git a/ggml/src/ggml-alloc.c b/ggml/src/ggml-alloc.c
+index f05fc096..954de27a 100644
+--- a/ggml/src/ggml-alloc.c
++++ b/ggml/src/ggml-alloc.c
+@@ -1174,6 +1174,8 @@ ggml_backend_buffer_t ggml_backend_alloc_ctx_tensors_from_buft(struct ggml_conte
+         }
+ 
+         enum ggml_backend_type tensor_backend_type = t->backend;
++        printf("[DEBUG] current tensor name %s, tensor shape %d, %d, %d, %d, tensor size is %d.\n",
++               t->name, t->ne[0], t->ne[1], t->ne[2], t->ne[3], this_size);
+ 
+         switch(tensor_backend_type)
+         {
+@@ -1196,6 +1198,8 @@ ggml_backend_buffer_t ggml_backend_alloc_ctx_tensors_from_buft(struct ggml_conte
+         };
+ 
+         if (cur_buf_sizes[0] > 0 && (cur_buf_sizes[0] + this_buf_sizes[0]) > max_size) {
++            printf("DEBUG cur_buf_sizes 0 %ld \n", cur_buf_sizes[0]);
++            printf("DEBUG cur_buf_sizes 1 %ld \n", cur_buf_sizes[1]);
+             // assume TP mode must alloc tensor on device 1...
+             // TPTODO: a little trickly here
+             bool is_TP_mode = cur_buf_sizes[1] != 0;
+@@ -1228,12 +1232,16 @@ ggml_backend_buffer_t ggml_backend_alloc_ctx_tensors_from_buft(struct ggml_conte
+             for(int dev_id = 0; dev_id < device_num; dev_id++){
+                 // allreduce buffer
+                 cur_buf_sizes[dev_id] += this_buf_sizes[dev_id];
++                printf("DEBUG this buf %d %ld \n", dev_id, this_buf_sizes[dev_id]);
++                printf("DEBUG cur_buf_sizes %d %ld \n", dev_id, cur_buf_sizes[dev_id]);
+             }
+         }
+     }
+ 
+     // allocate remaining tensors
+     if (cur_buf_sizes[0] > 0) {
++        printf("DEBUG remain cur_buf_sizes 0 %ld \n", cur_buf_sizes[0]);
++        printf("DEBUG remain cur_buf_sizes 1 %ld \n", cur_buf_sizes[1]);
+         // assume TP mode must alloc tensor on device 1...
+         // TPTODO: a little trickly here
+         bool is_TP_mode = cur_buf_sizes[1] != 0;
+diff --git a/ggml/src/ggml-sycl/ggml-sycl.cpp b/ggml/src/ggml-sycl/ggml-sycl.cpp
+index 1e05a93a..8bddf2eb 100644
+--- a/ggml/src/ggml-sycl/ggml-sycl.cpp
++++ b/ggml/src/ggml-sycl/ggml-sycl.cpp
+@@ -1030,6 +1030,8 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+                                            size_t offset, size_t size) try {
+     // Filter tensors not invoke in TP
+     // They will by malloced on default device(usually device 0).
++    printf("[DEBUG] current tensor name %s, tensor shape %d, %d, %d, %d, tensor size is %d.\n",
++        tensor->name, tensor->ne[0], tensor->ne[1], tensor->ne[2], tensor->ne[3], size);
+     ggml_backend_type tensor_backend_type = tensor->backend;
+     if (tensor_backend_type == GGML_BACKEND_TYPE_CPU || tensor_backend_type == GGML_BACKEND_TYPE_GPU) {
+         // all layer not splited in tp fashion should be malloced on device 0 only.
+@@ -1063,6 +1065,8 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+             get_row_split(&row_low, &row_high, tensor, buft_ctx->tensor_split, i);
+ 
+             int64_t nrows_split = row_high - row_low;
++            printf("DEBUG tensor ne1 %d %d \n", i, tensor->ne[1]);
++            printf("DEBUG nrows_split row_high row_low %d %d %d \n", nrows_split, row_high, row_low);
+             if (nrows_split == 0) {
+                 continue;
+             }
+@@ -1159,6 +1163,14 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+             ggml_sycl_set_device(i);
+             const queue_ptr stream = ctx->streams[i];
+ 
++            printf("DEBUG mmap 2 device % d, original_size %d \n", i, original_size);
++            // printf("DEBUG mmap 2 device % d, data_device %d \n", i, sizeof(reinterpret_cast<std::size_t>(extra->data_device[i])));
++            // char * host_buf = (char *) malloc(original_size);
++            // memcpy(host_buf, buf_pagable, original_size);
++            // SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++            // free(host_buf);
++            // usleep(100);
++            
+             SYCL_CHECK(CHECK_TRY_ERROR(
+                 (*stream)
+                     .memcpy(extra->data_device[i], buf_pagable, original_size)// gpu memory alloc done on using
+@@ -1338,9 +1350,16 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
+ 
+            ggml_sycl_set_device(i);
+            const queue_ptr stream = ctx->streams[i];
+-           SYCL_CHECK(CHECK_TRY_ERROR(
+-               (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
++           //SYCL_CHECK(CHECK_TRY_ERROR(
++           //    (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
+            // TPTODO low priority: make this buffer
++           printf("DEBUG mmap 1 device %d, original_size %d \n", i, original_size);
++           char * host_buf = (char *) malloc(original_size);
++           memcpy(host_buf, (const char *)data, original_size);
++           SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
++           free(host_buf);
++           // SYCL_CHECK(CHECK_TRY_ERROR(
++           //     (*stream).memcpy(extra->data_device[i], (const char *)data, original_size).wait()));
+            free(buf_pagable);
+         }
+         break;
