@@ -61,7 +61,7 @@ def task(id_: int) -> None:
 
                 if line.startswith(b"data: {"):
                     delta: dict = json.loads(line[len("data: ") :])["choices"][0]["delta"]
-                    if "content" in delta:
+                    if "content" in delta and delta["content"]:
                         with Path(f"task-{id_}.txt").open(
                             "a", encoding="utf-8"
                         ) as file:
