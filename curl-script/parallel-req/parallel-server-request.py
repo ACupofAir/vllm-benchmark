@@ -7,7 +7,6 @@ import json
 import time
 import sys
 import random
-import string
 from multiprocessing import Process
 from pathlib import Path
 from typing import Final
@@ -21,10 +20,16 @@ RESPONSE_TIMEOUT: float = 300.0
 MAXIMUM_RUNTIME: int = 3000
 MAX_TOKENS: int = 100
 
-
-def generate_random_prompt(length: int = 100) -> str:
-    return "".join(random.choices(string.ascii_letters + string.digits + " ", k=length))
-
+PROMPTS = [
+    "What is the meaning of life?\n",
+    "Explain the theory of relativity.\n",
+    "Describe the process of photosynthesis.\n",
+    "What are the main causes of climate change?\n",
+    "How does quantum computing work?\n",
+    "What is the significance of the Turing test?\n",
+    "Discuss the impact of artificial intelligence on society.\n",
+    "What are the ethical implications of genetic engineering?\n",
+]
 
 def print_health() -> None:
     """Prints server health."""
@@ -40,13 +45,12 @@ def task(id_: int) -> None:
     Args:
         id_ (int): task id
     """
-    random_prompt: str = generate_random_prompt(100)
     payload: dict = {
         "model": "",
         "messages": [
             {
                 "role": "user",
-                "content": f"Task {id_}: {random_prompt}. Please analyze this text and provide insights.",
+                "content": f"{random.choice(PROMPTS)}\n",
             },
         ],
         "max_tokens": MAX_TOKENS,
