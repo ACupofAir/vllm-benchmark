@@ -1,4 +1,7 @@
-"""Parallel server request test script."""
+"""
+Parallel server request test script.
+    usage: python3 parallel-server-request.py [num_instances]
+"""
 
 import json
 import time
