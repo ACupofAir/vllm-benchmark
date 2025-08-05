@@ -6,6 +6,8 @@ Parallel server request test script.
 import json
 import time
 import sys
+import random
+import string
 from multiprocessing import Process
 from pathlib import Path
 from typing import Final
@@ -18,6 +20,10 @@ CONNECT_TIMEOUT: float = 300.0
 RESPONSE_TIMEOUT: float = 300.0
 MAXIMUM_RUNTIME: int = 3000
 MAX_TOKENS: int = 100
+
+
+def generate_random_prompt(length: int = 100) -> str:
+    return "".join(random.choices(string.ascii_letters + string.digits + " ", k=length))
 
 
 def print_health() -> None:
@@ -34,15 +40,13 @@ def task(id_: int) -> None:
     Args:
         id_ (int): task id
     """
+    random_prompt: str = generate_random_prompt(100)
     payload: dict = {
         "model": "",
         "messages": [
             {
                 "role": "user",
-                "content": (
-                    "Describe how satellite constellations such as Starlink accelerate the Kessler syndrome "
-                    "and could pose a significant issue in the future"
-                ),
+                "content": f"Task {id_}: {random_prompt}. Please analyze this text and provide insights.",
             },
         ],
         "max_tokens": MAX_TOKENS,
@@ -62,9 +66,7 @@ def task(id_: int) -> None:
                 if line.startswith(b"data: {"):
                     delta: dict = json.loads(line[len("data: ") :])["choices"][0]["delta"]
                     if "content" in delta and delta["content"]:
-                        with Path(f"task-{id_}.txt").open(
-                            "a", encoding="utf-8"
-                        ) as file:
+                        with Path(f"task-{id_}.txt").open("a", encoding="utf-8") as file:
                             file.write(delta["content"])
 
     except requests.Timeout:
@@ -105,9 +107,7 @@ if __name__ == "__main__":
             print_health()
 
         if elapsed_seconds > MAXIMUM_RUNTIME:
-            print(
-                f"Time limit of {MAXIMUM_RUNTIME} seconds reached, killing running tasks"
-            )
+            print(f"Time limit of {MAXIMUM_RUNTIME} seconds reached, killing running tasks")
             for i, process in processes:
                 if process.is_alive():
                     print("Killing task", i)
@@ -120,9 +120,7 @@ if __name__ == "__main__":
 
             if not task_file_path.exists():
                 file.write(f"# TASK {id_}\n\n")
-                file.write(
-                    f"Task failed to receive response within {MAXIMUM_RUNTIME} seconds"
-                )
+                file.write(f"Task failed to receive response within {MAXIMUM_RUNTIME} seconds")
                 file.write("\n\n")
                 continue
 
