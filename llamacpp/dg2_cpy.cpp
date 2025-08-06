@@ -10,18 +10,12 @@
  */
 #include <sycl/ext/intel/esimd.hpp>
 #include <sycl/sycl.hpp>
+#include <chrono>
 
-uint16_t pattern_counter = 0xa770;
 #define DG2_NUM (2)
-typedef uint32_t pattern_t;
-using message_t = sycl::vec<uint32_t, 4>;
-
-#define SG_SZ (16)                /* Arc770: Subgroup Sizes Supported: 8;16;32, while 8 threads per EU */
-#define LS_SZ (sizeof(message_t)) /* load/store byte size per work-item */
 
 // 2 Cards
 #define LL256_BUF_SIZE (32 * 1024 * 1024)
-#define GATHER_BUF_OFFSET (LL256_BUF_SIZE / 2)
 static void *host_bufs[DG2_NUM]; /* host shared buf */
 static void *peer_bufs[DG2_NUM]; /* shared buf on peer side */
 
@@ -89,7 +83,6 @@ int main()
 
     const int N = 128;
     const bool isp2p = false;
-    Devs[0].ext_oneapi_enable_peer_access(Devs[1]);
 
     std::vector<int> input(N);
     std::iota(input.begin(), input.end(), 0);
@@ -112,9 +105,6 @@ int main()
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    Queues[0].wait();
-    Queues[1].wait();
-    
     usm_memcpy(dev1_ptr, dev0_ptr, N, Queues[0], Queues[1]);
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
