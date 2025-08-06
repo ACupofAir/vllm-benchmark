@@ -17,7 +17,6 @@
 // 2 Cards
 #define LL256_BUF_SIZE (32 * 1024 * 1024)
 static void *host_bufs[DG2_NUM]; /* host shared buf */
-static void *peer_bufs[DG2_NUM]; /* shared buf on peer side */
 
 void dg2_init(sycl::queue &q, int q_idx, bool is_p2p)
 {
@@ -37,7 +36,6 @@ void dg2_init(sycl::queue &q, int q_idx, bool is_p2p)
         }
 
         host_bufs[q_idx] = host_buf;
-        peer_bufs[q_idx] = host_buf;
     }
 }
 
@@ -105,7 +103,7 @@ int main()
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    usm_memcpy(dev1_ptr, dev0_ptr, N, Queues[0], Queues[1]);
+    usm_memcpy(dev1_ptr, dev0_ptr, N, Queues[1], Queues[0]);
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
     printf("Copy time: %.3f ms\n", elapsed_ms);
