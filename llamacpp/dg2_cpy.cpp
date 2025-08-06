@@ -1,12 +1,12 @@
 /*
  * source /opt/intel/oneapi/2025.0/oneapi-vars.sh
  *
- * dpcpp dg2_cpy.cpp -o dg2_cpy.o -DXE_PLUS
+ * dpcpp dg2_cpy.cpp -o dg2_cpy.exe -DXE_PLUS
  *
  * export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
  * export ONEAPI_DEVICE_SELECTOR="level_zero:0;level_zero:1"
  *
- * ./dg2_allreduce.o
+ * ./dg2_cpy.exe
  */
 #include <sycl/ext/intel/esimd.hpp>
 #include <sycl/sycl.hpp>
