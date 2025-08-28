@@ -341,7 +341,7 @@ static inline void recv(char *dst, char *src, int lid, int req_workitems,
 }
 
 
-void dg2_bmg_ll256_allreduce(const void *src, void *dst, size_t count, const int world_rank, const int world_size,
+void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int world_rank, const int world_size,
                          sycl::queue &q, ggml_type dtype)
 {
     // std::cout << "enter " << __func__ << ", rank: " << world_rank <<  ", count: " << count << std::endl;
@@ -477,7 +477,7 @@ void dg2_bmg_ll256_allreduce(const void *src, void *dst, size_t count, const int
 
                         char *next = local_peer_bufs[next_rank];
 
-			size_t left_size = count * dt_sz - offset;
+                        size_t left_size = count * dt_sz - offset;
                         send(next + offset_with_pattern, send_buf + offset, sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
 
@@ -490,7 +490,7 @@ void dg2_bmg_ll256_allreduce(const void *src, void *dst, size_t count, const int
                         char *src = local_host_buf;
                         char *next = local_peer_bufs[next_rank];
 
-			size_t left_size = count * dt_sz - offset;
+                        size_t left_size = count * dt_sz - offset;
                         recv_reduce_send(recv_buf + offset, next + offset_with_pattern, src + offset_with_pattern,
                                          sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
@@ -519,7 +519,7 @@ void dg2_bmg_ll256_allreduce(const void *src, void *dst, size_t count, const int
                         char *src = local_host_buf;
                         char *next = local_peer_bufs[next_rank];
 
-			size_t left_size = count * dt_sz - offset;
+                        size_t left_size = count * dt_sz - offset;
                         recv_copy_send(recv_buf + offset, next + offset_with_pattern, src + offset_with_pattern,
                                        sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
@@ -532,7 +532,7 @@ void dg2_bmg_ll256_allreduce(const void *src, void *dst, size_t count, const int
 
                         char *src = local_host_buf;
 
-			size_t left_size = count * dt_sz - offset;
+                        size_t left_size = count * dt_sz - offset;
                         recv(recv_buf + offset, src + offset_with_pattern, sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
                 }
@@ -594,23 +594,26 @@ int main()
     int *dev1_ptr = sycl::malloc_device<int32_t>(N, Queues[1]);
 
     Queues[0].memcpy(dev0_ptr, &input[0], N * sizeof(int32_t));
-    Queues[1].memcpy(dev1_ptr, &input[0], N * sizeof(int32_t));
 
 
     dg2_init(Queues[0], 0, isp2p);
     dg2_init(Queues[1], 1, isp2p);
 
+    printf("Before allreduce:\n");
+    Queues[0].memcpy(host_bufs[0], dev0_ptr, N * sizeof(int32_t)).wait();
+    Queues[1].memcpy(host_bufs[1], dev1_ptr, N * sizeof(int32_t)).wait();
     for (int i = 0; i < 2; i++)
     {
         print_host_buffer(host_bufs[i], i, N);
     }
 
-    dg2_bmg_ll256_allreduce(dev0_ptr, dev0_ptr, N, 0, 2, Queues[0], GGML_TYPE_I32);
-    dg2_bmg_ll256_allreduce(dev1_ptr, dev1_ptr, N, 1, 2, Queues[1], GGML_TYPE_I32);
+    dg2_ll256_allreduce(dev0_ptr, dev0_ptr, N, 0, 2, Queues[0], GGML_TYPE_I32);
+    dg2_ll256_allreduce(dev1_ptr, dev1_ptr, N, 1, 2, Queues[1], GGML_TYPE_I32);
 
     Queues[0].wait();
     Queues[1].wait();
 
+    printf("After wait:\n");
     for (int i = 0; i < 2; i++)
     {
         print_host_buffer(host_bufs[i], i, N);
@@ -619,6 +622,7 @@ int main()
     Queues[0].memcpy(host_bufs[0], dev0_ptr, N * sizeof(int32_t)).wait();
     Queues[1].memcpy(host_bufs[1], dev1_ptr, N * sizeof(int32_t)).wait();
 
+    printf("After allreduce:\n");
     for (int i = 0; i < 2; i++)
     {
         print_host_buffer(host_bufs[i], i, N);
