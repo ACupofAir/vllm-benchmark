@@ -154,22 +154,64 @@ static inline message_t sum(message_t dst, message_t src, const ggml_type &dtype
 }
 
 static inline void sync_data(char *src, message_t &data, int lid, pattern_t pattern)
+//[NEW-CODE]
 {
     size_t sz = sizeof(message_t);
-    auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
-
+    auto   sg = sycl::ext::oneapi::this_work_item::get_sub_group();
+    
+    int retry_count = 0;
+    const int max_retries = 2;  // 增加重试次数
+    
     do {
-#if defined(XE_PLUS)
-       LscLoadL3Cached(data, src + lid * sz);
-#else
+        // 强制内存屏障
+        sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::system);
+        
         LscLoadUnCached(data, src + lid * sz);
-#endif
 
-    } while (sycl::any_of_group(sg, ((lid ==  3) && (data[3] != pattern)) ||
-                                    ((lid ==  7) && (data[3] != pattern)) ||
+        if(lid==3) {
+            sycl::ext::oneapi::experimental::printf("[RECV] pattern=0x%x, data[3]=0x%x from addr %p\n", 
+                    pattern, data[3], src+lid*sz);  // rank用0占位
+        } 
+        
+        // 如果pattern不匹配，添加延迟
+        bool pattern_match = !((lid == 3) && (data[3] != pattern)) &&
+                            !((lid == 7) && (data[3] != pattern)) &&
+                            !((lid == 11) && (data[3] != pattern)) &&
+                            !((lid == 15) && (data[3] != pattern));
+        
+        if (!pattern_match) {
+            retry_count++;
+            if (retry_count > max_retries) {
+                if (lid=3) {
+                    sycl::ext::oneapi::experimental::printf("[TIMEOUT] pattern mismatch: pattern=0x%x, data[3]=0x%x from addr %p, src+lid*sz:%p\n", 
+                            pattern, data[3], &data[3], src+lid*sz);  // rank用0占位
+                }
+                break;  // 避免无限循环
+            }
+        }
+
+    } while (sycl::any_of_group(sg, ((lid == 3) && (data[3] != pattern)) || 
+                                    ((lid == 7) && (data[3] != pattern)) ||
                                     ((lid == 11) && (data[3] != pattern)) ||
                                     ((lid == 15) && (data[3] != pattern))));
 }
+//[ORG-CODE]
+//{
+//    size_t sz = sizeof(message_t);
+//    auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
+//
+//    do {
+//#if defined(XE_PLUS)
+//       LscLoadL3Cached(data, src + lid * sz);
+//#else
+//        LscLoadUnCached(data, src + lid * sz);
+//#endif
+//
+//    } while (sycl::any_of_group(sg, ((lid ==  3) && (data[3] != pattern)) ||
+//                                    ((lid ==  7) && (data[3] != pattern)) ||
+//                                    ((lid == 11) && (data[3] != pattern)) ||
+//                                    ((lid == 15) && (data[3] != pattern))));
+//}
 // Make some explain on simd instructions:
 // "mov (M1, 1) %0(1, 15)<1> %0(3, 7)<0;1,0>\n"
 // We need to maske it clear that this simd instruction is at subgroup level
@@ -259,6 +301,13 @@ static inline void send(char *next, char *src, int lid, int req_workitems, const
     shuffle_data(data);
     insert_pattern(data, pattern);
 
+    // FIXME:ADD-BEG 添加：确认发送操作
+    if (lid == 3) {
+        void * write_addr = next + lid * sz;
+        sycl::ext::oneapi::experimental::printf("[SEND] Rank %d lid %d sending pattern 0x%x to addr %p, data[3]=0x%x\n", 
+                                               rank, lid, pattern, write_addr, data[3]);
+    }
+    // FIXME:ADD-END
     LscStoreUnCached(next + lid * sz, data);
 #endif
 }
@@ -430,6 +479,12 @@ void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int wor
             auto sg_lid = sg.get_local_id()[0];
 
             for (int i = 0; i < iters; i++) {
+                // FIXME:ADD-BEG
+                if (group_id == 0 && sg_id == 0 && sg_lid == 0) {
+                    sycl::ext::oneapi::experimental::printf("[AllReduce] Rank %d starting kernel, iters=%d\n",
+                                                            local_world_rank, i);
+                }
+                // FIXME:ADD-END
                 pattern_t pattern = pattern_prefix + i;
 
                 auto base = local_world_size * (i        * total_capacity  +
@@ -478,6 +533,11 @@ void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int wor
                         char *next = local_peer_bufs[next_rank];
 
                         size_t left_size = count * dt_sz - offset;
+                        // FIXME:START
+                        if (group_id == 0 && sg_id == 0 && sg_lid == 0) {
+                            sycl::ext::oneapi::experimental::printf("[AllReduce] Rank %d step 1\n", local_world_rank);
+                        }
+                        // FIXME:END
                         send(next + offset_with_pattern, send_buf + offset, sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
 
@@ -491,6 +551,11 @@ void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int wor
                         char *next = local_peer_bufs[next_rank];
 
                         size_t left_size = count * dt_sz - offset;
+                        // FIXME:START
+                        if (group_id == 0 && sg_id == 0 && sg_lid == 0) {
+                            sycl::ext::oneapi::experimental::printf("[AllReduce] Rank %d step 2\n", local_world_rank);
+                        }
+                        // FIXME:END
                         recv_reduce_send(recv_buf + offset, next + offset_with_pattern, src + offset_with_pattern,
                                          sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
@@ -506,6 +571,11 @@ void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int wor
                         char *next = local_peer_bufs[next_rank];
 
                         size_t left_size = count * dt_sz - offset;
+                        // FIXME:START
+                        if (group_id == 0 && sg_id == 0 && sg_lid == 0) {
+                            sycl::ext::oneapi::experimental::printf("[AllReduce] Rank %d step 3\n", local_world_rank);
+                        }
+                        // FIXME:END
                         recv_reduce_copy_send(recv_buf + offset, next + GATHER_BUF_OFFSET + offset_with_pattern, src + offset_with_pattern,
                                               sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
@@ -520,6 +590,11 @@ void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int wor
                         char *next = local_peer_bufs[next_rank];
 
                         size_t left_size = count * dt_sz - offset;
+                        // FIXME:START
+                        if (group_id == 0 && sg_id == 0 && sg_lid == 0) {
+                            sycl::ext::oneapi::experimental::printf("[AllReduce] Rank %d step 4\n", local_world_rank);
+                        }
+                        // FIXME:END
                         recv_copy_send(recv_buf + offset, next + offset_with_pattern, src + offset_with_pattern,
                                        sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
@@ -533,6 +608,11 @@ void dg2_ll256_allreduce(const void *src, void *dst, size_t count, const int wor
                         char *src = local_host_buf;
 
                         size_t left_size = count * dt_sz - offset;
+                        // FIXME: START
+                        if (group_id == 0 && sg_id == 0 && sg_lid == 0) {
+                            sycl::ext::oneapi::experimental::printf("[AllReduce] Rank %d step 5\n", local_world_rank);
+                        }
+                        // FIXME: END
                         recv(recv_buf + offset, src + offset_with_pattern, sg_lid, req_workitems, dtype, local_world_rank, pattern,left_size);
                     }
                 }
