@@ -72,37 +72,3 @@ index 1e05a93a..8bddf2eb 100644
              if (nrows_split == 0) {
                  continue;
              }
-@@ -1159,6 +1163,14 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
-             ggml_sycl_set_device(i);
-             const queue_ptr stream = ctx->streams[i];
- 
-+            printf("DEBUG mmap 2 device % d, original_size %d \n", i, original_size);
-+            // printf("DEBUG mmap 2 device % d, data_device %d \n", i, sizeof(reinterpret_cast<std::size_t>(extra->data_device[i])));
-+            // char * host_buf = (char *) malloc(original_size);
-+            // memcpy(host_buf, buf_pagable, original_size);
-+            // SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
-+            // free(host_buf);
-+            // usleep(100);
-+            
-             SYCL_CHECK(CHECK_TRY_ERROR(
-                 (*stream)
-                     .memcpy(extra->data_device[i], buf_pagable, original_size)// gpu memory alloc done on using
-@@ -1338,9 +1350,16 @@ ggml_backend_sycl_hybrid_buffer_set_tensor(ggml_backend_buffer_t buffer,
- 
-            ggml_sycl_set_device(i);
-            const queue_ptr stream = ctx->streams[i];
--           SYCL_CHECK(CHECK_TRY_ERROR(
--               (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
-+           //SYCL_CHECK(CHECK_TRY_ERROR(
-+           //    (*stream).memcpy(extra->data_device[i], buf_pagable, original_size).wait()));
-            // TPTODO low priority: make this buffer
-+           printf("DEBUG mmap 1 device %d, original_size %d \n", i, original_size);
-+           char * host_buf = (char *) malloc(original_size);
-+           memcpy(host_buf, (const char *)data, original_size);
-+           SYCL_CHECK(CHECK_TRY_ERROR((*stream).memcpy(extra->data_device[i], host_buf, original_size).wait()));
-+           free(host_buf);
-+           // SYCL_CHECK(CHECK_TRY_ERROR(
-+           //     (*stream).memcpy(extra->data_device[i], (const char *)data, original_size).wait()));
-            free(buf_pagable);
-         }
-         break;
