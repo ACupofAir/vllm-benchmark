@@ -183,8 +183,8 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
             retry_count++;
             if (retry_count > max_retries) {
                 if (lid=3) {
-                    sycl::ext::oneapi::experimental::printf("[TIMEOUT] pattern mismatch: pattern=0x%x, data[3]=0x%x from addr %p, src+lid*sz:%p\n", 
-                            pattern, data[3], &data[3], src+lid*sz);  // rank用0占位
+                    sycl::ext::oneapi::experimental::printf("[TIMEOUT] pattern mismatch: pattern=0x%x, data[3]=0x%x from addr %p\n", 
+                            pattern, data[3], src+lid*sz);
                 }
                 break;  // 避免无限循环
             }
@@ -663,7 +663,7 @@ int main()
     //     return 0;
     // }
 
-    const int N = 128;
+    const int N = 200*1024;
     const bool isp2p = false;
     Devs[0].ext_oneapi_enable_peer_access(Devs[1]);
 
