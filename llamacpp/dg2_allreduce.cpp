@@ -199,7 +199,7 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
                                     ((lid == 11) && (data[3] != pattern)) ||
                                     ((lid == 15) && (data[3] != pattern))));
 }
-//[ORG-CODE]
+//[ORG-CODE]: will deadlock on windows + A770
 //{
 //    size_t sz = sizeof(message_t);
 //    auto sg = sycl::ext::oneapi::this_work_item::get_sub_group();
