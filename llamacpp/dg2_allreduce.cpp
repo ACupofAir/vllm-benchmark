@@ -1,7 +1,10 @@
 /*
  * source /opt/intel/oneapi/2025.0/oneapi-vars.sh
  *
+ * B60:
  * dpcpp dg2_allreduce.cpp -o dg2_allreduce.o -DXE_PLUS
+ * A770:
+ * dpcpp dg2_allreduce.cpp -o dg2_allreduce.o
  *
  * export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
  * export ONEAPI_DEVICE_SELECTOR="level_zero:0;level_zero:1"
@@ -160,12 +163,9 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
     auto   sg = sycl::ext::oneapi::this_work_item::get_sub_group();
     
     int retry_count = 0;
-    const int max_retries = 2;  // 增加重试次数
+    const int max_retries = 1;  // 增加重试次数
     
     do {
-        // 强制内存屏障
-        sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::system);
-        
         LscLoadUnCached(data, src + lid * sz);
 
         if(lid==3) {
@@ -173,7 +173,6 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
                     pattern, data[3], src+lid*sz);  // rank用0占位
         } 
         
-        // 如果pattern不匹配，添加延迟
         bool pattern_match = !((lid == 3) && (data[3] != pattern)) &&
                             !((lid == 7) && (data[3] != pattern)) &&
                             !((lid == 11) && (data[3] != pattern)) &&
@@ -182,11 +181,16 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
         if (!pattern_match) {
             retry_count++;
             if (retry_count > max_retries) {
-                if (lid=3) {
+                if (lid==3) {
                     sycl::ext::oneapi::experimental::printf("[TIMEOUT] pattern mismatch: pattern=0x%x, data[3]=0x%x from addr %p\n", 
                             pattern, data[3], src+lid*sz);
                 }
-                break;  // 避免无限循环
+                break;
+            } 
+        } else {
+            if (lid==3) {
+                sycl::ext::oneapi::experimental::printf("[SUCCESS] pattern matched: pattern=0x%x, data[3]=0x%x from addr %p\n", 
+                        pattern, data[3], src+lid*sz);
             }
         }
 
@@ -212,6 +216,7 @@ static inline void sync_data(char *src, message_t &data, int lid, pattern_t patt
 //                                    ((lid == 11) && (data[3] != pattern)) ||
 //                                    ((lid == 15) && (data[3] != pattern))));
 //}
+//
 // Make some explain on simd instructions:
 // "mov (M1, 1) %0(1, 15)<1> %0(3, 7)<0;1,0>\n"
 // We need to maske it clear that this simd instruction is at subgroup level
@@ -663,7 +668,7 @@ int main()
     //     return 0;
     // }
 
-    const int N = 200*1024;
+    const int N = 128;
     const bool isp2p = false;
     Devs[0].ext_oneapi_enable_peer_access(Devs[1]);
 
@@ -701,6 +706,9 @@ int main()
 
     Queues[0].memcpy(host_bufs[0], dev0_ptr, N * sizeof(int32_t)).wait();
     Queues[1].memcpy(host_bufs[1], dev1_ptr, N * sizeof(int32_t)).wait();
+
+    Queues[0].wait();
+    Queues[1].wait();
 
     printf("After allreduce:\n");
     for (int i = 0; i < 2; i++)
